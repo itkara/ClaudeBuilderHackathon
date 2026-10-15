@@ -86,9 +86,9 @@
     <details class="card jd" open><summary>Find real jobs · Adzuna</summary>
 <p class="hint">Real advertisements, not verified eligibility matches. Always confirm requirements and deadlines.</p>
 <div class="row"><label>Keywords <input id="liveKeywords" value="graduate analyst"></label><label>Location <input id="liveLocation" value="London"></label><button id="searchLiveJobs" class="btn">Search jobs</button></div>
-<p class="hint" id="liveJobsMsg"></p><div id="liveJobsResults"></div></details>
+<p class="hint" id="liveJobsMsg"></p></details>
 </div>
-    <div id="demoModePanel"><div id="families" class="tags"></div>
+    <div id="demoModePanel"><div id="families" class="tags"></div></div>
     <div class="deckWrap">
       <div id="deck" class="deck" aria-live="polite"></div>
       <div class="swipeBtns">
@@ -96,7 +96,6 @@
         <button id="likeBtn" class="round like" title="Draft my application (→)">♥</button>
       </div>
       <p class="hint center">Drag the card, use the buttons, or press ← / →. Right-swipes get a tailored CV, cover letter and checklist.</p>
-    </div>
     </div>
     <details class="card jd"><summary>Add a role from a job description</summary>
       <textarea id="jdText" rows="6" placeholder="Paste a full job description. Claude pulls out the requirements and checks them against you."></textarea>
@@ -109,6 +108,7 @@
     <h1>Your applications</h1>
     <p class="lede small">Sorted by closing date. Every pack keeps the exact CV and cover letter version we drafted for that role.</p>
     <div id="trackerList"></div>
+    <details class="card jd" style="margin-top:1rem"><summary>Passed jobs <span id="passedCount">0</span></summary><p class="hint">Roles you swiped left on, saved in this browser. You can restore them to the swipe deck.</p><div id="passedList"></div></details>
   </section>
 </main>
 
