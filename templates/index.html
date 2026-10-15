@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+{% load static %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hireationship</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23c2410c'/%3E%3Cpath d='M16 24s-7-4.4-7-9.5A4 4 0 0 1 16 12a4 4 0 0 1 7 2.5C23 19.600 16 24 16 24z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+<header class="top">
+  <div class="brand">Hire<span>ationship</span></div>
+  <nav>
+    <button data-view="profile" class="active">1 · You</button>
+    <button data-view="swipe">2 · Swipe</button>
+    <button data-view="tracker">3 · Applications <b id="appCount">0</b></button>
+  </nav>
+  <span id="modeBadge" class="mode" title=""></span>
+</header>
+
+<main>
+  <!-- PROFILE -->
+  <section id="view-profile" class="view">
+    <h1>Roles that match you, not roles you chase.</h1>
+    <p class="lede">Tell us who you are. We find the internships and graduate roles you're actually eligible for, ranked by how competitive they are. You swipe. We write the applications for the ones you like.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Your base CV</h2>
+        <textarea id="cvText" rows="14" placeholder="Paste your CV as plain text. Bullet points work best. Nothing is stored on a server."></textarea>
+        <div class="row">
+          <button id="readCv" class="btn">Read my CV</button>
+          <button id="loadExample" class="btn ghost">Try an example student</button>
+        </div>
+        <p class="hint" id="readMsg"></p>
+      </div>
+
+      <div class="card">
+        <h2>Check we've got you right</h2>
+        <div class="fields">
+          <label>Name<input id="f-name"></label>
+          <label>Degree<input id="f-subject" placeholder="e.g. MSci Natural Sciences"></label>
+          <label>Graduating (year)<input id="f-gradYear" type="number" min="2024" max="2035" placeholder="2027"></label>
+          <label>Classification (current or predicted)
+            <select id="f-class"><option value="">Select…</option><option>First</option><option>2:1</option><option>2:2</option><option>Third</option></select></label>
+          <label>Right to work in the UK
+            <select id="f-rtw"><option value="UK">Yes, without sponsorship</option><option value="sponsorship">I would need sponsorship</option></select></label>
+          <label class="wide">Skills (comma separated)<input id="f-skills" placeholder="python, statistics, writing"></label>
+          <fieldset class="wide"><legend>Subject areas your degree counts as</legend><div id="subjectTags" class="tags"></div></fieldset>
+          <label>GitHub<input id="f-github" placeholder="https://github.com/…"></label>
+          <label>Portfolio / website<input id="f-portfolio"></label>
+        </div>
+        <button id="findRoles" class="btn primary big">Find my roles →</button>
+        <p class="hint" id="findMsg"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SWIPE -->
+  <section id="view-swipe" class="view" hidden>
+    <div class="swipeHead">
+      <div>
+        <h1 id="swipeTitle">Your matches</h1>
+        <p class="lede small" id="swipeSub"></p>
+      </div>
+      <div class="controls">
+        <label>Order <select id="orderMode"><option value="competitive">Most competitive first</option><option value="fit">Best fit first</option></select></label>
+        <label class="check"><input type="checkbox" id="showAll"> Show eligible roles outside my suggested areas</label>
+      </div>
+    </div>
+    <div id="families" class="tags"></div>
+    <div class="deckWrap">
+      <div id="deck" class="deck" aria-live="polite"></div>
+      <div class="swipeBtns">
+        <button id="passBtn" class="round pass" title="Not for me (←)">✕</button>
+        <button id="likeBtn" class="round like" title="Draft my application (→)">♥</button>
+      </div>
+      <p class="hint center">Drag the card, use the buttons, or press ← / →. Right-swipes get a tailored CV, cover letter and checklist.</p>
+    </div>
+    <details class="card jd"><summary>Add a role from a job description</summary>
+      <textarea id="jdText" rows="6" placeholder="Paste a full job description. Claude pulls out the requirements and checks them against you."></textarea>
+      <button id="addJd" class="btn">Add to my deck</button> <span class="hint" id="jdMsg"></span>
+    </details>
+  </section>
+
+  <!-- TRACKER -->
+  <section id="view-tracker" class="view" hidden>
+    <h1>Your applications</h1>
+    <p class="lede small">Sorted by closing date. Every pack keeps the exact CV and cover letter version we drafted for that role.</p>
+    <div id="trackerList"></div>
+  </section>
+</main>
+
+<dialog id="pack">
+  <div class="packHead"><h2 id="packTitle"></h2><button id="packClose" class="btn ghost">Close</button></div>
+  <div class="tabs" id="packTabs"></div>
+  <div id="packBody"></div>
+  <div class="row"><button id="packCopy" class="btn">Copy</button><button id="packDownload" class="btn ghost">Download whole pack (.md)</button></div>
+</dialog>
+<div id="toast" class="toast" role="status"></div>
+<script src="{% static 'app.js' %}"></script>
+</body>
+</html>

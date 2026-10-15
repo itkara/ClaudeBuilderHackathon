@@ -1,0 +1,3 @@
+from django.urls import path
+from matching import views
+urlpatterns=[path('',views.index),path('api/status',views.status),path('api/profile',views.profile),path('api/match',views.match),path('api/jd',views.jd),path('api/generate',views.generate)]
