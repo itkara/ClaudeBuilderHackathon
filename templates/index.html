@@ -28,6 +28,10 @@
     <div class="grid2">
       <div class="card">
         <h2>Your base CV</h2>
+        <label for="cvFile"><strong>Upload a CV (PDF or Word)</strong></label>
+        <input id="cvFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <p class="hint" id="uploadMsg">Maximum 5 MB. Text is extracted for analysis; the original file is not saved on the server.</p>
+        <p class="hint">Or paste your CV below:</p>
         <textarea id="cvText" rows="14" placeholder="Paste your CV as plain text. Bullet points work best. Nothing is stored on a server."></textarea>
         <div class="row">
           <button id="readCv" class="btn">Read my CV</button>
