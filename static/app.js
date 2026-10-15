@@ -13,6 +13,18 @@ async function api(path, body) {
 }
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3200); }
 
+$('#privacyOpen').addEventListener('click', () => $('#privacyDialog').showModal());
+$('#privacyClose').addEventListener('click', () => $('#privacyDialog').close());
+$('#privacyClear').addEventListener('click', () => {
+  if (!confirm('Delete Hireationship CV, profile, application drafts and preferences stored in this browser?')) return;
+  try {
+    Object.keys(localStorage).filter(key => key.startsWith('hr.')).forEach(key => localStorage.removeItem(key));
+  } catch {
+    alert('Could not clear browser storage. Please clear this site\'s data in browser settings.');
+    return;
+  }
+  location.reload();
+});
 const SUBJECT_TAGS = ['physics', 'maths', 'engineering', 'computer-science', 'chemistry', 'biology', 'economics', 'humanities', 'other'];
 const STATUSES = ['Ready to apply', 'Applied', 'Online assessment', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
 const FAMILY_NAMES = { 'quant-finance': 'Quant & finance', 'data-science': 'Data science', engineering: 'Engineering', consulting: 'Consulting', research: 'Research', 'policy-science-comms': 'Policy & science comms', 'patent-law': 'Patent law', software: 'Software', teaching: 'Teaching' };
@@ -365,8 +377,8 @@ $('#packDownload').addEventListener('click', () => {
   $('#appCount').textContent = apps.length;
   try {
     const { mode } = await api('/api/status');
-    $('#modeBadge').textContent = mode === 'claude' ? 'Claude mode' : 'Demo mode';
-    $('#modeBadge').title = mode === 'claude' ? 'Writing is done by Claude' : 'No API key set: rule-based matching and templated writing. See README.';
+    $('#modeBadge').textContent = mode === 'claude' ? 'AI: Claude' : 'AI: Templates';
+    $('#modeBadge').title = mode === 'claude' ? 'Application writing uses Claude; job source is selected separately.' : 'Application writing uses templates; job source is selected separately.';
   } catch { $('#modeBadge').textContent = 'Server offline'; }
   const cv = store.get('cv', ''); if (cv) $('#cvText').value = cv;
   if (profile) {
