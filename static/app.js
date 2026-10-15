@@ -2,8 +2,24 @@
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = {
-  get(k, d) { try { const v = localStorage.getItem('hr.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('hr.' + k, JSON.stringify(v)); } catch { /* storage unavailable: state lives in memory only */ } },
+  data: {}, ready: false, timer: null, saving: Promise.resolve(),
+  get(k, fallback) { return Object.hasOwn(this.data, k) ? this.data[k] : fallback; },
+  set(k, value) {
+    this.data[k] = value;
+    if (!this.ready) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.flush(), 400);
+  },
+  flush() {
+    if (!this.ready) return this.saving;
+    clearTimeout(this.timer);
+    const snapshot = JSON.stringify(this.data);
+    this.saving = this.saving.catch(() => {}).then(async () => {
+      const res = await fetch('/api/workspace', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-CSRFToken':document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || ''}, body:snapshot, keepalive:true});
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Could not save workspace'); }
+    }).catch(err => { console.error('Workspace save failed', err); toast('Could not save your changes. Please try again.'); });
+    return this.saving;
+  }
 };
 async function api(path, body) {
   const res = await fetch(path, body ? { method: 'POST', headers: { 'content-type': 'application/json', 'X-CSRFToken': document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || '' }, body: JSON.stringify(body) } : undefined);
@@ -15,15 +31,17 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 
 $('#privacyOpen').addEventListener('click', () => $('#privacyDialog').showModal());
 $('#privacyClose').addEventListener('click', () => $('#privacyDialog').close());
-$('#privacyClear').addEventListener('click', () => {
-  if (!confirm('Delete Hireationship CV, profile, application drafts and preferences stored in this browser?')) return;
+$('#privacyClear').addEventListener('click', async () => {
+  if (!confirm('Permanently delete your CV, drafts, applications and swipe history from the Hireationship database?')) return;
   try {
-    Object.keys(localStorage).filter(key => key.startsWith('hr.')).forEach(key => localStorage.removeItem(key));
-  } catch {
-    alert('Could not clear browser storage. Please clear this site\'s data in browser settings.');
-    return;
-  }
-  location.reload();
+    store.ready = false;
+    clearTimeout(store.timer);
+    await store.saving.catch(() => {});
+    const res = await fetch('/api/workspace', {method:'DELETE', headers:{'X-CSRFToken':document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || ''}});
+    if (!res.ok) throw new Error('Deletion failed');
+    Object.keys(localStorage).filter(k => k.startsWith('hr.')).forEach(k => localStorage.removeItem(k));
+    location.reload();
+  } catch(e) { store.ready = true; alert('Could not delete your data. Please try again.'); }
 });
 const SUBJECT_TAGS = ['physics', 'maths', 'engineering', 'computer-science', 'chemistry', 'biology', 'economics', 'humanities', 'other'];
 const STATUSES = ['Ready to apply', 'Applied', 'Online assessment', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
@@ -394,6 +412,32 @@ $('#packDownload').addEventListener('click', () => {
 
 /* ---------- boot ---------- */
 (async function boot() {
+  try {
+    const response = await api('/api/workspace');
+    const serverData = response.data || {};
+    const legacy = {};
+    Object.keys(localStorage).filter(k => k.startsWith('hr.')).forEach(k => {
+      try { legacy[k.slice(3)] = JSON.parse(localStorage.getItem(k)); } catch {}
+    });
+    store.data = Object.keys(serverData).length ? serverData : legacy;
+    if (!Object.keys(serverData).length && Object.keys(legacy).length) {
+      const res = await fetch('/api/workspace', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || ''}, body:JSON.stringify(legacy)});
+      if (!res.ok) throw new Error('Could not migrate existing browser data');
+    }
+    Object.keys(localStorage).filter(k => k.startsWith('hr.')).forEach(k => localStorage.removeItem(k));
+    profile = store.get('profile', null);
+    parsed = store.get('parsed', {experiences:[], projects:[]});
+    apps = store.get('apps', []);
+    passed = store.get('passed', []);
+    passedHistory = store.get('passedHistory', []);
+    extraRoles = store.get('extraRoles', []);
+    setJobMode(store.get('jobMode', 'demo'));
+    store.ready = true;
+  } catch(e) {
+    console.error('Workspace loading failed', e);
+    alert('Could not load your private workspace. Please reload before making changes.');
+    return;
+  }
   $('#appCount').textContent = apps.length;
   try {
     const { mode } = await api('/api/status');

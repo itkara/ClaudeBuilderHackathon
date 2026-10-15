@@ -11,6 +11,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from . import claude,demo,matcher
+from .models import UserWorkspace
 log=logging.getLogger(__name__)
 @ensure_csrf_cookie
 def index(request):return render(request,'index.html')
@@ -185,3 +186,30 @@ def live_jobs(request):
     except (requests.RequestException,ValueError):
         log.exception('Live jobs fetch failed')
         return JsonResponse({'error':'Job search unavailable. Check credentials and PythonAnywhere outbound API access.'},status=502)
+
+WORKSPACE_KEYS = ('cv', 'profile', 'parsed', 'apps', 'passed', 'passedHistory', 'extraRoles', 'jobMode')
+
+def workspace(request):
+    if request.method == 'GET':
+        row = UserWorkspace.objects.filter(user=request.user).first()
+        response = JsonResponse({'data': row.data if row else {}})
+    elif request.method == 'POST':
+        if len(request.body) > 500_000:
+            return JsonResponse({'error': 'Workspace exceeds 500 KB. Remove old applications to free space.'}, status=413)
+        try:
+            payload = json.loads(request.body)
+            if not isinstance(payload, dict) or not all(k in WORKSPACE_KEYS for k in payload):
+                raise ValueError('Invalid workspace fields.')
+            row, _ = UserWorkspace.objects.get_or_create(user=request.user)
+            row.data = {**row.data, **payload}
+            row.save(update_fields=['data', 'updated_at'])
+            response = JsonResponse({'saved': True})
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Invalid workspace data.'}, status=400)
+    elif request.method == 'DELETE':
+        UserWorkspace.objects.filter(user=request.user).delete()
+        response = JsonResponse({'deleted': True})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    response['Cache-Control'] = 'no-store'
+    return response

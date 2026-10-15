@@ -115,12 +115,12 @@
 
 <dialog id="privacyDialog" aria-labelledby="privacyTitle">
   <div class="packHead"><h2 id="privacyTitle">Privacy & data</h2><button id="privacyClose" class="btn ghost" type="button">Close</button></div>
-  <p><strong>No intentional server-side storage of CVs or drafts.</strong> Hireationship processes uploaded CVs and generated documents in server memory rather than intentionally saving them to its database or file storage.</p>
-  <p>Your CV text, profile and application drafts are saved in this browser's local storage so you can return to them. Other people with access to this browser profile may be able to view them.</p>
+  <p><strong>Private account storage.</strong> Your extracted CV text, profile, saved jobs, swipe history and editable application drafts are saved in the Hireationship database on PythonAnywhere, linked to your account. Uploaded source files and exported PDFs are not intentionally kept.</p>
+  <p>Your workspace is loaded after login, not stored in browser local storage. Avoid using shared devices without signing out. Hosting providers may still maintain operational logs and backups.</p>
   <p><strong>AI features:</strong> When Claude is enabled, submitted CV and profile information may be sent via our server to Anthropic for analysis and drafting. Demo writing mode is separate from the Demo/Live job switch. Both job modes can still send CV data to our server. Hosting and third-party services may retain operational logs or data under their own policies.</p>
   <p>Consider removing your home address, telephone number and other unnecessary personal details before uploading. Do not upload someone else's CV without their permission.</p>
-  <p>Clearing browser data cannot erase information that a hosting provider or third-party service may already have retained.</p>
-  <button id="privacyClear" class="btn" type="button">Clear my data from this browser</button>
+  <p>Use Delete my data to remove your workspace from the app database. This does not delete your login account, hosting backups, operational logs or data already sent to third-party services.</p>
+  <button id="privacyClear" class="btn" type="button">Delete my stored workspace</button>
 </dialog>
 <dialog id="pack">
   <div class="packHead"><h2 id="packTitle"></h2><button id="packClose" class="btn ghost">Close</button></div>
