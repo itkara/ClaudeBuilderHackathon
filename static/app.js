@@ -45,6 +45,7 @@ let profile = store.get('profile', null);
 let parsed = store.get('parsed', { experiences: [], projects: [] });
 let apps = store.get('apps', []);
 let passed = store.get('passed', []);
+let passedHistory = store.get('passedHistory', []);
 let extraRoles = store.get('extraRoles', []);
 let families = [];
 let results = [];
@@ -164,7 +165,9 @@ function setJobMode(mode) {
   $('#jobModeDescription').textContent = jobMode === 'live'
     ? 'Live: search real UK job advertisements. Eligibility and deadlines must be verified.'
     : 'Demo: explore fictional example roles with swipe matching.';
-  if (jobMode === 'demo') renderSwipe();
+  $('#orderMode').disabled = jobMode === 'live';
+  $('#showAll').disabled = jobMode === 'live';
+  renderSwipe();
 }
 $('#demoModeBtn').addEventListener('click', () => setJobMode('demo'));
 $('#liveModeBtn').addEventListener('click', () => setJobMode('live'));
@@ -172,25 +175,19 @@ setJobMode(jobMode);
 
 let liveJobs = [];
 $('#searchLiveJobs').addEventListener('click', async () => {
- const button=$('#searchLiveJobs'); button.disabled=true; setMsg('#liveJobsMsg','Searching…');
- try {
-  const params=new URLSearchParams({what:$('#liveKeywords').value,where:$('#liveLocation').value});
-  const response=await fetch('/api/live-jobs?'+params);
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok) throw new Error(data.error||'Search failed');
-  liveJobs=data.jobs||[];
-  $('#liveJobsResults').innerHTML=liveJobs.map((job,i)=>'<div class="card app"><div><h3>'+esc(job.title)+'</h3><p class="meta">'+esc(job.employer)+' · '+esc(job.location)+'</p><p>'+esc(job.summary)+'</p><p class="hint">Eligibility and closing date unverified.</p></div><div class="actions"><a class="btn ghost" target="_blank" rel="noopener noreferrer" href="'+esc(job.applyUrl)+'">View job ↗</a><button class="btn" data-live-save="'+i+'">Save to applications</button></div></div>').join('')||'<p class="hint">No advertisements found.</p>';
-  setMsg('#liveJobsMsg',liveJobs.length+' live advertisements found. Check eligibility and deadlines on the job page.');
- } catch(e){setMsg('#liveJobsMsg',e.message,true);}
- finally{button.disabled=false;}
-});
-$('#liveJobsResults').addEventListener('click',(e)=>{
- const button=e.target.closest('[data-live-save]');if(!button)return;
- const job=liveJobs[Number(button.dataset.liveSave)];
- if(!job||apps.some(a=>a.role.id===job.id)){toast('Already saved');return;}
- const role={...job,custom:true,sample:false,source:'Adzuna',eligibilityUnverified:true};
- apps.push({id:'a'+Date.now(),role,tier:'unverified',category:'unverified',status:'Saved — check eligibility',docs:null,error:null,addedAt:new Date().toISOString()});
- saveApps();toast('Saved. Verify the requirements and deadline on the job page.');
+  const button = $('#searchLiveJobs');
+  button.disabled = true;
+  setMsg('#liveJobsMsg', 'Searching for real jobs…');
+  try {
+    const params = new URLSearchParams({what: $('#liveKeywords').value, where: $('#liveLocation').value});
+    const response = await fetch('/api/live-jobs?' + params);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Search failed');
+    liveJobs = (data.jobs || []).filter(j => j.id && j.title);
+    setMsg('#liveJobsMsg', liveJobs.length + ' real job adverts loaded. Swipe right to save, left to pass. Requirements and deadlines are not verified.');
+    renderSwipe();
+  } catch (e) { setMsg('#liveJobsMsg', e.message, true); }
+  finally { button.disabled = false; }
 });
 
 /* ---------- swipe deck ---------- */
@@ -198,6 +195,7 @@ const byFit = (a, b) => b.fit - a.fit || b.role.competitiveness - a.role.competi
 function queue() {
   const done = new Set([...passed, ...apps.map((a) => a.role.id)]);
   const showAll = $('#showAll').checked;
+  if (jobMode === 'live') return liveJobs.filter(j => !done.has(j.id)).map(j => ({role: {...j, source: 'Adzuna', sample: false, custom: true, eligibilityUnverified: true, type: 'grad'}, tier: 'unverified', category: 'unverified', hardPasses: [], matched: [], missingRequired: [], missingPreferred: [], fit: null}));
   const list = results.filter((r) => !done.has(r.role.id) && (r.inFamily || showAll));
   return $('#orderMode').value === 'fit' ? list.sort(byFit) : list;
 }
@@ -206,6 +204,7 @@ const dots = (n) => `<span class="dots" aria-label="${n} out of 5">${[1, 2, 3, 4
 
 function cardHTML(r) {
   const ro = r.role;
+  if (ro.eligibilityUnverified) return `<span class="stamp l">PASS</span><span class="stamp r">SAVE</span><div><span class="pill">Live advert</span><span class="pill">Eligibility unverified</span></div><h2>${esc(ro.title)}</h2><p class="emp">${esc(ro.employer)} · ${esc(ro.location || '')}</p><p>${esc(ro.summary || 'No description supplied.')}</p><ul class="why"><li>Source: Adzuna job advertisement</li><li>Skills, eligibility and closing date must be checked on the original listing.</li></ul>${ro.applyUrl?.startsWith('https://') ? `<p><a href="${esc(ro.applyUrl)}" target="_blank" rel="noopener noreferrer">Read full job advert ↗</a></p>` : ''}<p class="deadline">Swipe right to save to Applications. You can draft an application after verifying the requirements.</p>`;
   const typeLabel = ro.type === 'grad' ? 'Graduate role' : ro.type === 'spring-week' ? 'Spring week' : 'Internship';
   const hard = [...r.hardPasses.map((t) => `<li class="ok">${esc(t)}</li>`)].join('');
   const chips = [...r.matched.map((s) => `<span class="chip ok">${esc(s)}</span>`), ...r.missingRequired.map((s) => `<span class="chip miss">needs ${esc(s)}</span>`), ...r.missingPreferred.map((s) => `<span class="chip">nice: ${esc(s)}</span>`)].join('');
@@ -226,8 +225,9 @@ function renderSwipe() {
   $('#families').innerHTML = families.length ? '<span class="famLabel">Suggested for you (hover for why):</span>' + families.map((f) => `<span class="fam" title="${esc(f.why)}">${esc(FAMILY_NAMES[f.id] || f.id)}</span>`).join('') : '';
   const q = queue();
   const deck = $('#deck');
-  $('#swipeTitle').textContent = profile ? `${q.length} role${q.length === 1 ? '' : 's'} to look at` : 'Your matches';
-  if (!profile || !results.length) { deck.innerHTML = '<p class="empty">Start with your profile, then your matches will appear here.</p>'; setBtns(false); return; }
+  $('#swipeTitle').textContent = jobMode === 'live' ? `${q.length} live role${q.length === 1 ? '' : 's'} to look at` : (profile ? `${q.length} role${q.length === 1 ? '' : 's'} to look at` : 'Your matches');
+  $('#swipeSub').textContent = jobMode === 'live' ? 'Live job adverts from Adzuna. Swipe to save or pass; matching and eligibility are not verified.' : (profile ? `Showing suggested roles for your graduation year ${profile.gradYear}.` : '');
+  if (jobMode === 'demo' && (!profile || !results.length)) { deck.innerHTML = '<p class="empty">Start with your profile, then your matches will appear here.</p>'; setBtns(false); return; }
   if (!q.length) { deck.innerHTML = '<p class="empty">You\'ve been through everything for now. Check <b>Applications</b>, or tick "show eligible roles outside my suggested areas".</p>'; setBtns(false); return; }
   deck.innerHTML = '';
   if (q[1]) { const n = document.createElement('div'); n.className = 'swipeCard next'; n.innerHTML = cardHTML(q[1]); deck.appendChild(n); }
@@ -255,7 +255,7 @@ function commit(dir) {
   if (card) { card.classList.remove('dragging'); card.style.transform = `translateX(${dir === 'right' ? 700 : -700}px) rotate(${dir === 'right' ? 25 : -25}deg)`; card.style.opacity = 0; }
   const r = q[0];
   setTimeout(() => {
-    if (dir === 'right') { addApp(r); } else { passed.push(r.role.id); store.set('passed', passed); }
+    if (dir === 'right') { if (r.role.eligibilityUnverified) { apps.push({id:'a'+Date.now(),role:r.role,tier:'unverified',category:'unverified',status:'Saved — check eligibility',docs:null,error:null,addedAt:new Date().toISOString()}); saveApps(); toast('Saved to Applications. Check the full advert before drafting.'); } else addApp(r); } else { passed.push(r.role.id); store.set('passed', passed); passedHistory = [{role:r.role, passedAt:new Date().toISOString()}, ...passedHistory.filter(x => x.role.id !== r.role.id)]; store.set('passedHistory', passedHistory); }
     busy = false; renderSwipe();
   }, 230);
 }
@@ -297,7 +297,8 @@ function saveApps() { store.set('apps', apps); $('#appCount').textContent = apps
 
 function renderTracker() {
   const list = $('#trackerList');
-  if (!apps.length) { list.innerHTML = '<p class="empty">Nothing here yet. Swipe right on a role and its application pack will appear.</p>'; return; }
+  renderPassedHistory();
+  if (!apps.length) { list.innerHTML = '<p class="empty">Nothing here yet. Swipe right on a role to save it here.</p>'; return; }
   const sorted = [...apps].sort((a, b) => (a.role.closes ? new Date(a.role.closes).getTime() : Infinity) - (b.role.closes ? new Date(b.role.closes).getTime() : Infinity));
   list.innerHTML = sorted.map((a) => {
     const d = a.role.closes ? daysLeft(a.role.closes) : null;
@@ -310,6 +311,25 @@ function renderTracker() {
       </div></div>`;
   }).join('');
 }
+function renderPassedHistory() {
+  $('#passedCount').textContent = passedHistory.length;
+  $('#passedList').innerHTML = passedHistory.length ? passedHistory.map((entry, i) =>
+    `<div class="card app"><div><h3>${esc(entry.role.title)}</h3><p class="meta">${esc(entry.role.employer)} · ${esc(entry.role.location || '')} · Passed ${esc(entry.passedAt.slice(0,10))}</p></div><div class="actions">${entry.role.applyUrl?.startsWith('https://') ? `<a class="btn ghost" target="_blank" rel="noopener noreferrer" href="${esc(entry.role.applyUrl)}">View job ↗</a>` : ''}<button class="btn ghost" data-restore-passed="${i}">Restore to deck</button></div></div>`).join('') : '<p class="hint">No passed jobs recorded yet. Future left swipes will appear here.</p>';
+}
+$('#passedList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-restore-passed]');
+  if (!btn) return;
+  const item = passedHistory[Number(btn.dataset.restorePassed)];
+  if (!item) return;
+  passed = passed.filter(id => id !== item.role.id);
+  store.set('passed', passed);
+  passedHistory = passedHistory.filter(x => x.role.id !== item.role.id);
+  store.set('passedHistory', passedHistory);
+  if (item.role.source === 'Adzuna' && !liveJobs.some(j => j.id === item.role.id)) liveJobs.unshift(item.role);
+  if (item.role.source === 'Adzuna') setJobMode('live'); else setJobMode('demo');
+  renderPassedHistory();
+  toast('Job restored to swipe deck');
+});
 $('#trackerList').addEventListener('click', (e) => {
   const act = e.target.dataset.act; if (!act || act === 'status') return;
   const app = apps.find((a) => a.id === e.target.closest('.app').dataset.id); if (!app) return;
