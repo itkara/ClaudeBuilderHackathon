@@ -303,19 +303,46 @@ function addApp(r) {
   const app = { id: 'a' + Date.now(), role: r.role, tier: r.tier, category: r.category, status: 'Drafting', docs: null, error: null, addedAt: new Date().toISOString() };
   apps.push(app); saveApps(); toast(`Drafting your application to ${r.role.employer.replace(' (sample)', '')}…`); generate(app);
 }
+async function refreshGenerationQuota() {
+  const element = $('#generationQuota');
+  try {
+    const quota = await api('/api/generation-quota');
+    const remaining = quota.remaining;
+    element.textContent = `Free plan · ${remaining} of ${quota.limit} application generations remaining today` + (remaining === 1 ? ' — last one!' : remaining === 0 ? ' — resets tomorrow' : '');
+    element.style.fontWeight = remaining <= 1 ? '700' : '';
+    return quota;
+  } catch {
+    element.textContent = 'Generation allowance unavailable — please try again.';
+    return null;
+  }
+}
 async function generate(app) {
+  const quota = await refreshGenerationQuota();
+  if (quota && quota.remaining === 0) {
+    app.status = 'Daily generation limit reached';
+    app.error = 'You have used all your free generations today. Try again tomorrow.';
+    saveApps();
+    return;
+  }
+  if (quota && quota.remaining === 1 && !confirm('This is your last free application generation today. Continue?')) {
+    app.status = 'Saved — ready to draft';
+    saveApps();
+    return;
+  }
   app.status = 'Drafting'; app.error = null; saveApps();
   try {
     app.docs = await api('/api/generate', { profile, role: app.role });
     app.status = 'Ready to apply'; toast(`Pack ready: ${app.role.title}`);
   } catch (e) { app.status = 'Draft failed'; app.error = e.message; }
   saveApps();
+  await refreshGenerationQuota();
 }
 function saveApps() { store.set('apps', apps); $('#appCount').textContent = apps.length; if (!$('#view-tracker').hidden) renderTracker(); }
 
 function renderTracker() {
   const list = $('#trackerList');
   renderPassedHistory();
+  refreshGenerationQuota();
   if (!apps.length) { list.innerHTML = '<p class="empty">Nothing here yet. Swipe right on a role to save it here.</p>'; return; }
   const sorted = [...apps].sort((a, b) => (a.role.closes ? new Date(a.role.closes).getTime() : Infinity) - (b.role.closes ? new Date(b.role.closes).getTime() : Infinity));
   list.innerHTML = sorted.map((a) => {
@@ -439,6 +466,7 @@ $('#packDownload').addEventListener('click', () => {
     return;
   }
   $('#appCount').textContent = apps.length;
+  await refreshGenerationQuota();
   try {
     const { mode } = await api('/api/status');
     $('#modeBadge').textContent = mode === 'claude' ? 'AI: Claude' : 'AI: Templates';
