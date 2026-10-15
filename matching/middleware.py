@@ -1,4 +1,8 @@
+import os
 from django.conf import settings
+from django.db.models import F
+from django.utils import timezone
+from .models import DailyAIUsage
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
@@ -14,4 +18,12 @@ class PrivateAppMiddleware:
             if path.startswith('/api/'):
                 return JsonResponse({'error': 'Login required.'}, status=401)
             return redirect(settings.LOGIN_URL)
+        if path in ('/api/profile', '/api/match', '/api/jd', '/api/generate') and request.method == 'POST' and os.getenv('ANTHROPIC_API_KEY'):
+            if os.getenv('HIREATIONSHIP_AI_ENABLED', '1') == '0':
+                return JsonResponse({'error': 'AI features are temporarily disabled.'}, status=503)
+            limit = max(0, int(os.getenv('HIREATIONSHIP_DAILY_AI_LIMIT', '20')))
+            usage, _ = DailyAIUsage.objects.get_or_create(user=request.user, day=timezone.localdate())
+            updated = DailyAIUsage.objects.filter(pk=usage.pk, requests__lt=limit).update(requests=F('requests') + 1)
+            if not updated:
+                return JsonResponse({'error': 'Daily AI request limit reached. Try again tomorrow.'}, status=429)
         return self.get_response(request)
