@@ -73,7 +73,17 @@
         <label class="check"><input type="checkbox" id="showAll"> Show eligible roles outside my suggested areas</label>
       </div>
     </div>
-    <details class="card jd"><summary>Find real jobs · Adzuna</summary>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="row" style="align-items:center;justify-content:space-between">
+        <div><strong>Job source</strong><p class="hint" id="jobModeDescription">Demo: explore fictional example roles.</p></div>
+        <div class="row" role="group" aria-label="Job source">
+          <button id="demoModeBtn" class="btn primary" type="button" aria-pressed="true">Demo</button>
+          <button id="liveModeBtn" class="btn ghost" type="button" aria-pressed="false">Live</button>
+        </div>
+      </div>
+    </div>
+    <div id="liveModePanel" hidden>
+    <details class="card jd" open><summary>Find real jobs · Adzuna</summary>
 <p class="hint">Real advertisements, not verified eligibility matches. Always confirm requirements and deadlines.</p>
 <div class="row"><label>Keywords <input id="liveKeywords" value="graduate analyst"></label><label>Location <input id="liveLocation" value="London"></label><button id="searchLiveJobs" class="btn">Search jobs</button></div>
 <p class="hint" id="liveJobsMsg"></p><div id="liveJobsResults"></div></details>
@@ -85,6 +95,7 @@
         <button id="likeBtn" class="round like" title="Draft my application (→)">♥</button>
       </div>
       <p class="hint center">Drag the card, use the buttons, or press ← / →. Right-swipes get a tailored CV, cover letter and checklist.</p>
+    </div>
     </div>
     <details class="card jd"><summary>Add a role from a job description</summary>
       <textarea id="jdText" rows="6" placeholder="Paste a full job description. Claude pulls out the requirements and checks them against you."></textarea>
