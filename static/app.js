@@ -152,6 +152,7 @@ async function runMatch() {
 
 
 
+let liveJobs = [];
 let jobMode = store.get('jobMode', 'demo') === 'live' ? 'live' : 'demo';
 function setJobMode(mode) {
   jobMode = mode === 'live' ? 'live' : 'demo';
@@ -173,7 +174,6 @@ $('#demoModeBtn').addEventListener('click', () => setJobMode('demo'));
 $('#liveModeBtn').addEventListener('click', () => setJobMode('live'));
 setJobMode(jobMode);
 
-let liveJobs = [];
 $('#searchLiveJobs').addEventListener('click', async () => {
   const button = $('#searchLiveJobs');
   button.disabled = true;
@@ -228,7 +228,7 @@ function renderSwipe() {
   $('#swipeTitle').textContent = jobMode === 'live' ? `${q.length} live role${q.length === 1 ? '' : 's'} to look at` : (profile ? `${q.length} role${q.length === 1 ? '' : 's'} to look at` : 'Your matches');
   $('#swipeSub').textContent = jobMode === 'live' ? 'Live job adverts from Adzuna. Swipe to save or pass; matching and eligibility are not verified.' : (profile ? `Showing suggested roles for your graduation year ${profile.gradYear}.` : '');
   if (jobMode === 'demo' && (!profile || !results.length)) { deck.innerHTML = '<p class="empty">Start with your profile, then your matches will appear here.</p>'; setBtns(false); return; }
-  if (!q.length) { deck.innerHTML = '<p class="empty">You\'ve been through everything for now. Check <b>Applications</b>, or tick "show eligible roles outside my suggested areas".</p>'; setBtns(false); return; }
+  if (!q.length) { deck.innerHTML = jobMode === 'live' ? '<p class="empty">Search above to load live jobs, or change keywords. Passed jobs are saved under Applications.</p>' : '<p class="empty">You have seen all current demo matches. Check Applications or change the filters.</p>'; setBtns(false); return; }
   deck.innerHTML = '';
   if (q[1]) { const n = document.createElement('div'); n.className = 'swipeCard next'; n.innerHTML = cardHTML(q[1]); deck.appendChild(n); }
   const top = document.createElement('div'); top.className = 'swipeCard'; top.innerHTML = cardHTML(q[0]); deck.appendChild(top);
