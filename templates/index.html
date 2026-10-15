@@ -16,7 +16,7 @@
     <button data-view="swipe">2 · Swipe</button>
     <button data-view="tracker">3 · Applications <b id="appCount">0</b></button>
   </nav>
-  <span id="modeBadge" class="mode" title=""></span>
+  <span id="modeBadge" class="mode" title=""></span><button id="privacyOpen" class="btn ghost" type="button">Privacy & data</button>
 </header>
 
 <main>
@@ -32,7 +32,7 @@
         <input id="cvFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
         <p class="hint" id="uploadMsg">Maximum 5 MB. Text is extracted for analysis; the original file is not saved on the server.</p>
         <p class="hint">Or paste your CV below:</p>
-        <textarea id="cvText" rows="14" placeholder="Paste your CV as plain text. Bullet points work best. Nothing is stored on a server."></textarea>
+        <textarea id="cvText" rows="14" placeholder="Paste your CV as plain text. Bullet points work best."></textarea>
         <div class="row">
           <button id="readCv" class="btn">Read my CV</button>
           <button id="loadExample" class="btn ghost">Try an example student</button>
@@ -87,7 +87,8 @@
 <p class="hint">Real advertisements, not verified eligibility matches. Always confirm requirements and deadlines.</p>
 <div class="row"><label>Keywords <input id="liveKeywords" value="graduate analyst"></label><label>Location <input id="liveLocation" value="London"></label><button id="searchLiveJobs" class="btn">Search jobs</button></div>
 <p class="hint" id="liveJobsMsg"></p><div id="liveJobsResults"></div></details>
-<div id="demoModePanel"><div id="families" class="tags"></div>
+</div>
+    <div id="demoModePanel"><div id="families" class="tags"></div>
     <div class="deckWrap">
       <div id="deck" class="deck" aria-live="polite"></div>
       <div class="swipeBtns">
@@ -111,6 +112,15 @@
   </section>
 </main>
 
+<dialog id="privacyDialog" aria-labelledby="privacyTitle">
+  <div class="packHead"><h2 id="privacyTitle">Privacy & data</h2><button id="privacyClose" class="btn ghost" type="button">Close</button></div>
+  <p><strong>No intentional server-side storage of CVs or drafts.</strong> Hireationship processes uploaded CVs and generated documents in server memory rather than intentionally saving them to its database or file storage.</p>
+  <p>Your CV text, profile and application drafts are saved in this browser's local storage so you can return to them. Other people with access to this browser profile may be able to view them.</p>
+  <p><strong>AI features:</strong> When Claude is enabled, submitted CV and profile information may be sent via our server to Anthropic for analysis and drafting. Demo writing mode is separate from the Demo/Live job switch. Both job modes can still send CV data to our server. Hosting and third-party services may retain operational logs or data under their own policies.</p>
+  <p>Consider removing your home address, telephone number and other unnecessary personal details before uploading. Do not upload someone else's CV without their permission.</p>
+  <p>Clearing browser data cannot erase information that a hosting provider or third-party service may already have retained.</p>
+  <button id="privacyClear" class="btn" type="button">Clear my data from this browser</button>
+</dialog>
 <dialog id="pack">
   <div class="packHead"><h2 id="packTitle"></h2><button id="packClose" class="btn ghost">Close</button></div>
   <div class="tabs" id="packTabs"></div>
