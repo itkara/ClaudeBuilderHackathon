@@ -288,9 +288,24 @@ function renderPack() {
   if (tab === 'docs') {
     const items = (d.supportingDocs || []).map((x) => `<li><span class="pill ${x.status === 'have' ? 'ok' : 'miss'} chip ${x.status === 'have' ? 'ok' : 'miss'}">${x.status === 'have' ? 'You have this' : 'To prepare'}</span> <b>${esc(x.item)}</b><br>${esc(x.note)}</li>`).join('');
     $('#packBody').innerHTML = items ? `<p class="hint">Beyond your name, address and the usual details, this application also wants:</p><ul>${items}</ul>` : '<p>No extra documents beyond your basic details.</p>';
+  } else if (tab === 'cv' || tab === 'letter') {
+    $('#packBody').innerHTML = `<p class="hint">Edit this draft before generating your PDF. Check every claim and detail.</p><textarea id="editPackText" rows="17" style="width:100%;box-sizing:border-box" aria-label="Edit ${tab === 'cv' ? 'CV' : 'cover letter'}">${esc(packText(d, tab))}</textarea>`;
   } else $('#packBody').innerHTML = `<pre>${esc(packText(d, tab))}</pre>`;
+  $('#pdfControls').hidden = !(tab === 'cv' || tab === 'letter');
   if (d.mode === 'demo') $('#packBody').insertAdjacentHTML('afterbegin', '<p class="hint">Demo mode: templated from your CV lines. Add an Anthropic API key for fully tailored writing.</p>');
 }
+$('#packBody').addEventListener('input', (e) => { if (!current || e.target.id !== 'editPackText') return; if (tab === 'cv') current.docs.cv = e.target.value; else if (tab === 'letter') current.docs.coverLetter = e.target.value; saveApps(); });
+$('#generatePdf').addEventListener('click', async () => {
+  if (!current || !['cv','letter'].includes(tab)) return;
+  const button = $('#generatePdf'); button.disabled = true; setMsg('#pdfMsg', 'Generating PDF…');
+  try {
+    const response = await fetch('/api/export-pdf', { method:'POST', headers:{ 'content-type':'application/json', 'X-CSRFToken': document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || '' }, body:JSON.stringify({ kind:tab, text:packText(current.docs, tab), template:$('#pdfTemplate').value }) });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.error || 'PDF export failed'); }
+    const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url;
+    link.download = `${current.role.employer.replace(/[^a-z0-9]+/gi, '-')}-${tab === 'cv' ? 'cv' : 'cover-letter'}.pdf`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
+    setMsg('#pdfMsg', 'PDF ready.');
+  } catch (error) { setMsg('#pdfMsg', error.message, true); } finally { button.disabled = false; }
+});
 $('#packTabs').addEventListener('click', (e) => { if (e.target.dataset.t) { tab = e.target.dataset.t; renderPack(); } });
 $('#packClose').addEventListener('click', () => $('#pack').close());
 $('#packCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(packText(current.docs, tab)); toast('Copied'); } catch { toast('Copy failed: select the text manually'); } });
