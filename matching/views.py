@@ -1,3 +1,5 @@
+import os
+import requests
 import json,logging,time
 from io import BytesIO
 from pypdf import PdfReader
@@ -152,3 +154,34 @@ def export_pdf(request):
     except Exception:
         log.exception('PDF export failed')
         return JsonResponse({'error': 'Could not generate PDF.'}, status=500)
+
+def live_jobs(request):
+    if request.method != 'GET':
+        return JsonResponse({'error':'Method not allowed'},status=405)
+    app_id=os.environ.get('ADZUNA_APP_ID')
+    app_key=os.environ.get('ADZUNA_APP_KEY')
+    if not app_id or not app_key:
+        return JsonResponse({'error':'Adzuna API credentials are not configured on the server.'},status=503)
+    query=request.GET.get('what','graduate').strip()[:90]
+    where=request.GET.get('where','London').strip()[:90]
+    if not query:
+        return JsonResponse({'error':'Enter search keywords.'},status=400)
+    try:
+        response=requests.get('https://api.adzuna.com/v1/api/jobs/gb/search/1',params={'app_id':app_id,'app_key':app_key,'what':query,'where':where,'results_per_page':15,'sort_by':'date'},timeout=12)
+        response.raise_for_status()
+        jobs=[]
+        for item in response.json().get('results',[]):
+            url=item.get('redirect_url','')
+            if not url.startswith('https://'):
+                continue
+            jobs.append({'id':'adzuna-'+str(item.get('id','')),'title':str(item.get('title',''))[:200],
+              'employer':str((item.get('company') or {}).get('display_name',''))[:150],
+              'location':str((item.get('location') or {}).get('display_name',''))[:150],
+              'summary':str(item.get('description',''))[:600],
+              'applyUrl':url,'posted':str(item.get('created',''))[:10]})
+        result=JsonResponse({'jobs':jobs})
+        result['Cache-Control']='private, max-age=300'
+        return result
+    except (requests.RequestException,ValueError):
+        log.exception('Live jobs fetch failed')
+        return JsonResponse({'error':'Job search unavailable. Check credentials and PythonAnywhere outbound API access.'},status=502)

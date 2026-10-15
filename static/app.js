@@ -137,6 +137,30 @@ async function runMatch() {
   $('#swipeSub').textContent = `You graduate in ${profile.gradYear}, so we're showing ${data.stage}-year opportunities you're eligible for, plus a few stretches.`;
 }
 
+
+let liveJobs = [];
+$('#searchLiveJobs').addEventListener('click', async () => {
+ const button=$('#searchLiveJobs'); button.disabled=true; setMsg('#liveJobsMsg','Searching…');
+ try {
+  const params=new URLSearchParams({what:$('#liveKeywords').value,where:$('#liveLocation').value});
+  const response=await fetch('/api/live-jobs?'+params);
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||'Search failed');
+  liveJobs=data.jobs||[];
+  $('#liveJobsResults').innerHTML=liveJobs.map((job,i)=>'<div class="card app"><div><h3>'+esc(job.title)+'</h3><p class="meta">'+esc(job.employer)+' · '+esc(job.location)+'</p><p>'+esc(job.summary)+'</p><p class="hint">Eligibility and closing date unverified.</p></div><div class="actions"><a class="btn ghost" target="_blank" rel="noopener noreferrer" href="'+esc(job.applyUrl)+'">View job ↗</a><button class="btn" data-live-save="'+i+'">Save to applications</button></div></div>').join('')||'<p class="hint">No advertisements found.</p>';
+  setMsg('#liveJobsMsg',liveJobs.length+' live advertisements found. Check eligibility and deadlines on the job page.');
+ } catch(e){setMsg('#liveJobsMsg',e.message,true);}
+ finally{button.disabled=false;}
+});
+$('#liveJobsResults').addEventListener('click',(e)=>{
+ const button=e.target.closest('[data-live-save]');if(!button)return;
+ const job=liveJobs[Number(button.dataset.liveSave)];
+ if(!job||apps.some(a=>a.role.id===job.id)){toast('Already saved');return;}
+ const role={...job,custom:true,sample:false,source:'Adzuna',eligibilityUnverified:true};
+ apps.push({id:'a'+Date.now(),role,tier:'unverified',category:'unverified',status:'Saved — check eligibility',docs:null,error:null,addedAt:new Date().toISOString()});
+ saveApps();toast('Saved. Verify the requirements and deadline on the job page.');
+});
+
 /* ---------- swipe deck ---------- */
 const byFit = (a, b) => b.fit - a.fit || b.role.competitiveness - a.role.competitiveness;
 function queue() {
@@ -242,23 +266,23 @@ function saveApps() { store.set('apps', apps); $('#appCount').textContent = apps
 function renderTracker() {
   const list = $('#trackerList');
   if (!apps.length) { list.innerHTML = '<p class="empty">Nothing here yet. Swipe right on a role and its application pack will appear.</p>'; return; }
-  const sorted = [...apps].sort((a, b) => new Date(a.role.closes) - new Date(b.role.closes));
+  const sorted = [...apps].sort((a, b) => (a.role.closes ? new Date(a.role.closes).getTime() : Infinity) - (b.role.closes ? new Date(b.role.closes).getTime() : Infinity));
   list.innerHTML = sorted.map((a) => {
-    const d = daysLeft(a.role.closes);
+    const d = a.role.closes ? daysLeft(a.role.closes) : null;
     const opts = [...new Set([a.status, ...STATUSES])].filter((s) => s !== 'Drafting' && s !== 'Draft failed' || s === a.status).map((s) => `<option ${s === a.status ? 'selected' : ''}>${esc(s)}</option>`).join('');
     return `<div class="card app" data-id="${esc(a.id)}">
-      <div><h3>${esc(a.role.title)}</h3><div class="meta">${esc(a.role.employer)} · ${esc(a.category)} · closes ${esc(a.role.closes)} <span class="${d <= 7 ? 'urgent' : ''}">(${d > 0 ? d + ' days left' : 'closed'})</span></div>${a.error ? `<div class="hint err">${esc(a.error)}</div>` : ''}</div>
+      <div><h3>${esc(a.role.title)}</h3><div class="meta">${esc(a.role.employer)} · ${esc(a.category)} · ${a.role.closes ? 'closes '+esc(a.role.closes) : 'closing date unverified'} <span class="${d !== null && d <= 7 ? 'urgent' : ''}">${d === null ? '' : '('+(d > 0 ? d + ' days left' : 'closed')+')'}</span></div>${a.error ? `<div class="hint err">${esc(a.error)}</div>` : ''}</div>
       <div class="actions">
-        ${a.status === 'Drafting' ? '<span class="hint">Drafting…</span>' : a.status === 'Draft failed' ? '<button class="btn" data-act="retry">Retry</button>' : `<select data-act="status" aria-label="Status">${opts}</select><button class="btn" data-act="open">Open pack</button>`}
-        <button class="btn ghost" data-act="remove" title="Remove from tracker">Remove</button>
+        ${a.status === 'Drafting' ? '<span class="hint">Drafting…</span>' : a.status === 'Draft failed' ? '<button class="btn" data-act="retry">Retry</button>' : `<select data-act="status" aria-label="Status">${opts}</select>${a.docs ? '<button class="btn" data-act="open">Open pack</button>' : '<button class="btn" data-act="draft">Draft application</button>'}`}
+        ${a.role.applyUrl && a.role.applyUrl.startsWith("https://") ? `<a class="btn ghost" href="${esc(a.role.applyUrl)}" target="_blank" rel="noopener noreferrer">View job ↗</a>` : ""}<button class="btn ghost" data-act="remove" title="Remove from tracker">Remove</button>
       </div></div>`;
   }).join('');
 }
 $('#trackerList').addEventListener('click', (e) => {
   const act = e.target.dataset.act; if (!act || act === 'status') return;
   const app = apps.find((a) => a.id === e.target.closest('.app').dataset.id); if (!app) return;
-  if (act === 'open') openPack(app);
-  if (act === 'retry') { generate(app); renderTracker(); }
+  if (act === 'open' && app.docs) openPack(app);
+  if (act === 'retry' || act === 'draft') { if(app.role.eligibilityUnverified && !confirm('Have you checked eligibility and the closing date on the original job advert?'))return; generate(app); renderTracker(); }
   if (act === 'remove') { apps = apps.filter((a) => a !== app); saveApps(); renderTracker(); }
 });
 $('#trackerList').addEventListener('change', (e) => {
