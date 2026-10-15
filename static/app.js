@@ -89,6 +89,26 @@ async function readCv() {
   finally { btn.disabled = false; }
 }
 $('#readCv').addEventListener('click', readCv);
+$('#cvFile').addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { setMsg('#uploadMsg', 'Please choose a file smaller than 5 MB.', true); return; }
+  const data = new FormData();
+  data.append('cv', file);
+  setMsg('#uploadMsg', 'Extracting text from your CV…');
+  const input = $('#cvFile'); input.disabled = true;
+  try {
+    const token = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)?.[1] || '';
+    const response = await fetch('/api/upload-cv', { method: 'POST', headers: { 'X-CSRFToken': token }, body: data });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `Upload failed (${response.status})`);
+    $('#cvText').value = result.cvText;
+    setMsg('#uploadMsg', 'Text extracted. Analysing your CV and filling in your profile…');
+    const success = await readCv();
+    setMsg('#uploadMsg', success ? 'CV imported! Review the profile fields before finding matches.' : 'Text extracted, but profile analysis failed. You can retry with Read my CV.', !success);
+  } catch (error) { setMsg('#uploadMsg', error.message, true); }
+  finally { input.disabled = false; }
+});
 $('#loadExample').addEventListener('click', async () => {
   $('#cvText').value = EXAMPLE_CV;
   if (await readCv()) {
