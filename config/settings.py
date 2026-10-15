@@ -6,8 +6,8 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY=os.environ.get('DJANGO_SECRET_KEY','development-only-not-for-production')
 DEBUG=os.environ.get('DJANGO_DEBUG','0')=='1'
 ALLOWED_HOSTS=[x.strip() for x in os.environ.get('DJANGO_ALLOWED_HOSTS','localhost,127.0.0.1').split(',') if x.strip()]
-INSTALLED_APPS=['django.contrib.staticfiles','matching']
-MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
+INSTALLED_APPS=['django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.staticfiles','matching']
+MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.middleware.common.CommonMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','matching.middleware.PrivateAppMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF='config.urls'
 TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request']}}]
 WSGI_APPLICATION='config.wsgi.application'
@@ -27,3 +27,11 @@ DATABASES = {
 ALLOWED_HOSTS = [
     'itkara.pythonanywhere.com',
 ]
+
+LOGIN_URL='/login/'
+LOGIN_REDIRECT_URL='/'
+SESSION_COOKIE_HTTPONLY=True
+SESSION_COOKIE_SAMESITE='Lax'
+SESSION_COOKIE_SECURE=not DEBUG
+CSRF_COOKIE_SECURE=not DEBUG
+SESSION_COOKIE_AGE=8*60*60

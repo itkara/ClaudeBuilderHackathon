@@ -17,6 +17,7 @@
     <button data-view="tracker">3 · Applications <b id="appCount">0</b></button>
   </nav>
   <span id="modeBadge" class="mode" title=""></span><button id="privacyOpen" class="btn ghost" type="button">Privacy & data</button>
+<form method="post" action="/logout/" style="display:inline">{% csrf_token %}<button class="btn ghost" type="submit">Sign out</button></form>
 </header>
 
 <main>
