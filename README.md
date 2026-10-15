@@ -66,7 +66,3 @@ data/roles.json    sample roles
 public/            single-page front end (vanilla JS)
 test/              unit tests (node --test)
 ```
-
-## Licence
-
-MIT
