@@ -1,4 +1,7 @@
 import json,logging,time
+from io import BytesIO
+from pypdf import PdfReader
+from docx import Document
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from django.conf import settings
@@ -55,3 +58,43 @@ def generate(data):
  if not p or not r:raise ValueError('Missing profile or role.')
  ev=matcher.evaluate(p,r)
  return {**claude.generate_pack(p,r,ev),'mode':'claude'} if claude.has_key() else demo.demo_pack(p,r,ev)
+
+
+def upload_cv(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    uploaded = request.FILES.get('cv')
+    if not uploaded:
+        return JsonResponse({'error': 'Choose a PDF or .docx file.'}, status=400)
+    if uploaded.size > 5 * 1024 * 1024:
+        return JsonResponse({'error': 'CV must be smaller than 5 MB.'}, status=400)
+    extension = Path(uploaded.name).suffix.lower()
+    if extension not in ('.pdf', '.docx'):
+        return JsonResponse({'error': 'Only PDF and Word (.docx) files are supported.'}, status=400)
+    try:
+        content = uploaded.read()
+        if extension == '.pdf':
+            if not content.startswith(b'%PDF-'):
+                raise ValueError('This does not appear to be a valid PDF.')
+            reader = PdfReader(BytesIO(content))
+            if len(reader.pages) > 25:
+                raise ValueError('Please upload a CV of 25 pages or fewer.')
+            cv_text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+        else:
+            if not content.startswith(b'PK'):
+                raise ValueError('This does not appear to be a valid Word document.')
+            doc = Document(BytesIO(content))
+            parts = [para.text for para in doc.paragraphs]
+            for table in doc.tables:
+                for row in table.rows:
+                    parts.append(' | '.join(cell.text for cell in row.cells))
+            cv_text = '\n'.join(parts)
+        cv_text = cv_text.strip()
+        if len(cv_text) < 30:
+            raise ValueError('Could not extract enough text. For scanned PDFs, paste the CV text manually.')
+        if len(cv_text) > 50000:
+            raise ValueError('CV text is too long. Please shorten it to 50,000 characters.')
+        return JsonResponse({'cvText': cv_text})
+    except (ValueError, Exception) as exc:
+        log.warning('CV upload failed: %s', type(exc).__name__)
+        return JsonResponse({'error': str(exc) if isinstance(exc, ValueError) else 'Could not read this CV file.'}, status=400)
