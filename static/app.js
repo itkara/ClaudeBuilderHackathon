@@ -138,6 +138,26 @@ async function runMatch() {
 }
 
 
+
+let jobMode = store.get('jobMode', 'demo') === 'live' ? 'live' : 'demo';
+function setJobMode(mode) {
+  jobMode = mode === 'live' ? 'live' : 'demo';
+  store.set('jobMode', jobMode);
+  $('#demoModePanel').hidden = jobMode !== 'demo';
+  $('#liveModePanel').hidden = jobMode !== 'live';
+  $('#demoModeBtn').className = jobMode === 'demo' ? 'btn primary' : 'btn ghost';
+  $('#liveModeBtn').className = jobMode === 'live' ? 'btn primary' : 'btn ghost';
+  $('#demoModeBtn').setAttribute('aria-pressed', String(jobMode === 'demo'));
+  $('#liveModeBtn').setAttribute('aria-pressed', String(jobMode === 'live'));
+  $('#jobModeDescription').textContent = jobMode === 'live'
+    ? 'Live: search real UK job advertisements. Eligibility and deadlines must be verified.'
+    : 'Demo: explore fictional example roles with swipe matching.';
+  if (jobMode === 'demo') renderSwipe();
+}
+$('#demoModeBtn').addEventListener('click', () => setJobMode('demo'));
+$('#liveModeBtn').addEventListener('click', () => setJobMode('live'));
+setJobMode(jobMode);
+
 let liveJobs = [];
 $('#searchLiveJobs').addEventListener('click', async () => {
  const button=$('#searchLiveJobs'); button.disabled=true; setMsg('#liveJobsMsg','Searching…');
