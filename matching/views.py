@@ -5,7 +5,7 @@ from docx import Document
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from . import claude,demo,matcher
@@ -98,3 +98,57 @@ def upload_cv(request):
     except (ValueError, Exception) as exc:
         log.warning('CV upload failed: %s', type(exc).__name__)
         return JsonResponse({'error': str(exc) if isinstance(exc, ValueError) else 'Could not read this CV file.'}, status=400)
+
+
+def export_pdf(request):
+    """Render user-reviewed application text as a downloadable PDF."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        from io import BytesIO
+        from xml.sax.saxutils import escape
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, KeepTogether
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_LEFT
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        payload = json.loads(request.body)
+        kind = payload.get('kind')
+        content = payload.get('text', '')
+        if kind not in ('cv', 'letter') or not isinstance(content, str) or not content.strip() or len(content) > 50000:
+            raise ValueError('Choose a CV or cover letter containing up to 50,000 characters.')
+        template = payload.get('template', 'classic')
+        if template not in ('classic', 'modern'):
+            raise ValueError('Invalid template.')
+        styles = getSampleStyleSheet()
+        navy = colors.HexColor('#263A67')
+        accent = colors.HexColor('#E95B65') if template == 'modern' else navy
+        body = ParagraphStyle('AppBody', parent=styles['Normal'], fontName='Helvetica', fontSize=9.5, leading=14, spaceAfter=5, textColor=colors.HexColor('#222222'))
+        heading = ParagraphStyle('AppHeading', parent=body, fontName='Helvetica-Bold', fontSize=11, leading=15, spaceBefore=10, spaceAfter=5, textColor=accent)
+        title = ParagraphStyle('AppTitle', parent=heading, fontSize=16, leading=20, spaceAfter=12)
+        bullet = ParagraphStyle('AppBullet', parent=body, leftIndent=14, firstLineIndent=-8)
+        out = BytesIO()
+        doc = SimpleDocTemplate(out, pagesize=A4, leftMargin=48, rightMargin=48, topMargin=45, bottomMargin=45, title='Tailored CV' if kind == 'cv' else 'Cover letter')
+        story = []
+        for i, line in enumerate(content.splitlines()):
+            line = line.strip()
+            if not line:
+                story.append(Spacer(1, 7))
+                continue
+            line = line.lstrip('#').strip()
+            if line.startswith(('- ', '* ', '• ')):
+                story.append(Paragraph('&#8226; ' + escape(line[2:]), bullet))
+            elif kind == 'cv' and (i == 0 or (len(line) < 65 and (line.isupper() or line.endswith(':')))):
+                story.append(Paragraph(escape(line.rstrip(':')), title if i == 0 else heading))
+            else:
+                story.append(Paragraph(escape(line), body))
+        doc.build(story)
+        response = HttpResponse(out.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="hireationship-' + ('cv' if kind == 'cv' else 'cover-letter') + '.pdf"'
+        response['Cache-Control'] = 'no-store'
+        return response
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    except Exception:
+        log.exception('PDF export failed')
+        return JsonResponse({'error': 'Could not generate PDF.'}, status=500)
