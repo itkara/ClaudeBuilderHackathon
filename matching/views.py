@@ -11,7 +11,8 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from . import claude,demo,matcher
-from .models import UserWorkspace
+from .models import UserWorkspace, DailyAIUsage
+from django.utils import timezone as django_timezone
 log=logging.getLogger(__name__)
 @ensure_csrf_cookie
 def index(request):return render(request,'index.html')
@@ -211,5 +212,15 @@ def workspace(request):
         response = JsonResponse({'deleted': True})
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    response['Cache-Control'] = 'no-store'
+    return response
+
+def generation_quota(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    limit = max(0, int(os.getenv('HIREATIONSHIP_DAILY_GENERATION_LIMIT', '3')))
+    usage = DailyAIUsage.objects.filter(user=request.user, day=django_timezone.localdate()).first()
+    used = usage.generations if usage else 0
+    response = JsonResponse({'plan': 'free', 'limit': limit, 'used': used, 'remaining': max(0, limit-used)})
     response['Cache-Control'] = 'no-store'
     return response
