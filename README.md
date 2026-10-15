@@ -1,6 +1,6 @@
 # Hireationship
 
-**Roles that match you, not roles you chase.**
+**Tired of being ghosted? Match with employers ready to commit.**
 
 Most job platforms start from the jobs and leave you to work out whether you fit. Hireationship starts from *you*: it works out which roles you are actually eligible for, ranks them by how competitive they are, and lets you swipe. For every role you swipe right on, it writes the application: a tailored CV, a cover letter if the employer wants one, a checklist of the supporting documents you will need, and a plan for closing any gaps before the deadline.
 
