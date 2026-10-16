@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from django.contrib.auth.views import LoginView
 
 class HireationshipLoginView(LoginView):
@@ -12,6 +12,6 @@ class HireationshipLoginView(LoginView):
             query = urlencode({
                 'subject': 'Hireationship — registration access request',
                 'body': 'Hello,\n\nI would like to request access to Hireationship.\n\nMy name:\nUniversity or organisation (optional):\n\nI would appreciate a registration link when one is available.\n\nThank you,\n'
-            })
+            }, quote_via=quote)
             context['invite_request_url'] = f'mailto:{email}?{query}'
         return context
