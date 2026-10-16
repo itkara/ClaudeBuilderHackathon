@@ -246,7 +246,7 @@ function renderSwipe() {
   $('#swipeTitle').textContent = jobMode === 'live' ? `${q.length} live role${q.length === 1 ? '' : 's'} to look at` : (profile ? `${q.length} role${q.length === 1 ? '' : 's'} to look at` : 'Your matches');
   $('#swipeSub').textContent = jobMode === 'live' ? 'Live job adverts from Adzuna. Swipe to save or pass; matching and eligibility are not verified.' : (profile ? `Showing suggested roles for your graduation year ${profile.gradYear}.` : '');
   if (jobMode === 'demo' && (!profile || !results.length)) { deck.innerHTML = '<p class="empty">Start with your profile, then your matches will appear here.</p>'; setBtns(false); return; }
-  if (!q.length) { deck.innerHTML = jobMode === 'live' ? '<p class="empty">Search above to load live jobs, or change keywords. Passed jobs are saved under Applications.</p>' : '<p class="empty">You have seen all current demo matches. Check Applications or change the filters.</p>'; setBtns(false); return; }
+  if (!q.length) { deck.innerHTML = jobMode === 'live' ? '<p class="empty">Search above to load live jobs, or change keywords. Having FOMO? Revisit your left-swipes under Applications.</p>' : '<p class="empty">You have seen all current demo matches. Check Applications or change the filters.</p>'; setBtns(false); return; }
   deck.innerHTML = '';
   if (q[1]) { const n = document.createElement('div'); n.className = 'swipeCard next'; n.innerHTML = cardHTML(q[1]); deck.appendChild(n); }
   const top = document.createElement('div'); top.className = 'swipeCard'; top.innerHTML = cardHTML(q[0]); deck.appendChild(top);
@@ -368,7 +368,7 @@ function renderTracker() {
 function renderPassedHistory() {
   $('#passedCount').textContent = passedHistory.length;
   $('#passedList').innerHTML = passedHistory.length ? passedHistory.map((entry, i) =>
-    `<div class="card app"><div><h3>${esc(entry.role.title)}</h3><p class="meta">${esc(entry.role.employer)} · ${esc(entry.role.location || '')} · Passed ${esc(entry.passedAt.slice(0,10))}</p></div><div class="actions">${entry.role.applyUrl?.startsWith('https://') ? `<a class="btn ghost" target="_blank" rel="noopener noreferrer" href="${esc(entry.role.applyUrl)}">View job ↗</a>` : ''}<button class="btn ghost" data-restore-passed="${i}">Restore to deck</button></div></div>`).join('') : '<p class="hint">No passed jobs recorded yet. Future left swipes will appear here.</p>';
+    `<div class="card app"><div><h3>${esc(entry.role.title)}</h3><p class="meta">${esc(entry.role.employer)} · ${esc(entry.role.location || '')} · Swiped left ${esc(entry.passedAt.slice(0,10))}</p></div><div class="actions">${entry.role.applyUrl?.startsWith('https://') ? `<a class="btn ghost" target="_blank" rel="noopener noreferrer" href="${esc(entry.role.applyUrl)}">View job ↗</a>` : ''}<button class="btn ghost" data-restore-passed="${i}">Restore to deck</button></div></div>`).join('') : '<p class="hint">No passed jobs recorded yet. Future left swipes will appear here.</p>';
 }
 $('#passedList').addEventListener('click', e => {
   const btn = e.target.closest('[data-restore-passed]');
