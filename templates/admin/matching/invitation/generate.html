@@ -1,16 +1,19 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-<p>Create a private registration link for one person. It expires after <strong>7 days</strong> and can only be used once.</p>
+<p>Enter the applicant's email address to create a private, single-use registration link (expires after <strong>7 days</strong>) and prepare an approval email in your own mail app.</p>
 {% if registration_url %}
 <div class="module" style="padding:1.25rem;max-width:850px">
-  <h2>Copy this link now</h2>
-  <p>The full link is shown <strong>only on this page</strong>. Only its SHA-256 hash is saved; after leaving, it cannot be recovered.</p>
-  <p><input type="text" readonly value="{{ registration_url }}" id="invite-url" aria-label="Private registration link" style="width:100%;box-sizing:border-box;padding:.6rem"></p>
-  <p>Copy and paste it into your approval email. Do not publish it or send it to multiple people.</p>
+  <h2>Invitation created</h2>
+  <p><strong>The email has not been sent.</strong> Click the button below to open a draft in your email app, review it and press Send yourself.</p>
+  <p><a class="button default" href="{{ email_draft_url }}">Open approval email draft 💌</a></p>
+  <p>Backup: copy the link below if your email app does not open. The full token is only displayed here and cannot be retrieved later.</p>
+  <p><input type="text" readonly value="{{ registration_url }}" aria-label="Private registration link" style="width:100%;box-sizing:border-box;padding:.6rem"></p>
+  <p>Do not share this link publicly. A new link should be generated for each applicant.</p>
 </div>
 {% else %}
 <form method="post">{% csrf_token %}
-<input type="submit" class="default" value="Generate private invitation">
+{{ form.as_p }}
+<input type="submit" class="default" value="Approve &amp; Draft Email 💌">
 </form>
 {% endif %}
 <p><a href="{% url 'admin:matching_invitation_changelist' %}">Back to invitations</a></p>
