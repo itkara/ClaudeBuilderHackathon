@@ -44,7 +44,8 @@ Claude powers AI-assisted reading and writing when an Anthropic key is configure
 
 ### 5. Private accounts and invite-only access
 - Sign in to an account to use the app; **open self-registration is disabled**.
-- A project administrator generates **single-use, expiring invitation links** for testers and hackathon judges.
+- Regular testers can receive **single-use, expiring invitation links**. Hackathon judges can instead use **one reusable private link** from the submission PDF, capped at 15 registrations and expiring 30 days after its deployment.
+- The Django **admin dashboard** at https://itkara.pythonanywhere.com/admin/ lets the superuser see how many judge places have been used, change the registration cap or expiry, and revoke the reusable invitation without using Bash.
 - The login page can offer **Request an invitation** by opening a prefilled email to a configured contact address.
 - Each user's profile, CV text, saved roles, passed-history and application drafts are stored in **account-linked SQLite workspace data**, rather than relying on browser local storage. Existing browser data may be migrated once when first upgrading.
 - Privacy controls include an option to delete workspace data. This does not necessarily remove account credentials, operational logs or hosting backups.
@@ -60,7 +61,9 @@ Claude powers AI-assisted reading and writing when an Anthropic key is configure
 
 Visit **https://itkara.pythonanywhere.com** and sign in with an existing account, or use a private registration link from the project team.
 
-For judge invitations, deployment and the access-request email templates, see **[JUDGES_ACCESS.md](JUDGES_ACCESS.md)** (added in PR #11). Each invite can be redeemed once; never publish real invitation tokens in the repository.
+**Hackathon judges:** open the private registration link embedded in the submission PDF, create an account, and follow the on-page walkthrough. Each judge gets an independent workspace and daily generation allowance. The reusable link permits up to 15 registrations and expires 30 days after deployment. To manage it, the project superuser signs in at **https://itkara.pythonanywhere.com/admin/** and opens **Judge invites**. See **[JUDGES_REUSABLE_ACCESS.md](JUDGES_REUSABLE_ACCESS.md)** for setup, capacity changes and revocation.
+
+**Other testers:** use a private single-use link created with the management command below; see **[JUDGES_ACCESS.md](JUDGES_ACCESS.md)** for email templates. Never publish invitation tokens in the repository.
 
 ## Local development
 
@@ -92,13 +95,13 @@ On Windows, activate with `.venv\Scripts\activate`. Set a local `DJANGO_SECRET_K
 | `HIREATIONSHIP_AI_ENABLED` | Set to `0` to temporarily disable Claude-backed features |
 | `HIREATIONSHIP_INVITE_CONTACT_EMAIL` | Email address for login-page access requests (PR #11) |
 
-To create a judge invitation after applying the invite migration:
+To create an individual single-use tester invitation:
 
 ```bash
 python manage.py create_invite --days 30
 ```
 
-Run again for each person. Invitations are single-use. The default validity without `--days` is seven days.
+Run again for each person. These individual invitations are single-use; the default validity without `--days` is seven days. The reusable judge link is created automatically by migration `0004_judgeinvite`, not by this command.
 
 ### PythonAnywhere deployment
 
@@ -131,12 +134,13 @@ Then go to **PythonAnywhere → Web → Reload** and hard-refresh the browser. B
 config/                 Django settings, URLs and WSGI configuration
 matching/               Eligibility matching, API endpoints, Claude integration,
                         data models, access controls and migrations
-matching/management/    Invitation-generation command (PR #11)
+matching/management/    Single-use invitation-generation command
 templates/              App, login and invite registration templates
 static/                 Frontend JavaScript and CSS
 requirements.txt        Python dependencies
 manage.py               Django management entry point
-JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
+JUDGES_ACCESS.md        Individual invite instructions and email templates
+JUDGES_REUSABLE_ACCESS.md  Reusable judge link, Django admin and deployment instructions
 ```
 
 ## Current limitations and roadmap
