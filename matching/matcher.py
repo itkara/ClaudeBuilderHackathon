@@ -1,3 +1,4 @@
+import re
 from datetime import datetime,date,timezone
 CLASS_RANK={'first':4,'2:1':3,'2:2':2,'third':1}
 SYNONYMS={'py':'python','ml':'machine learning','js':'javascript','stats':'statistics','modeling':'modelling','optimization':'optimisation'}
@@ -15,7 +16,7 @@ def haystack(p):
  return ' \n '.join(str(x) for x in parts).lower()
 def has_skill(p,skill,hay):
  s=norm(skill)
- return any(norm(x)==s for x in p.get('skills',[])) or (len(s)>2 and s in hay)
+ return any(norm(x)==s for x in p.get('skills',[])) or (len(s)>2 and bool(re.search(r'(?<!\w)'+re.escape(s)+r'(?!\w)',hay)))
 def categorise(tier,fit,competitiveness):
  if tier=='stretch':return 'reach'
  gap=float(competitiveness or 3)-fit/20
@@ -42,9 +43,9 @@ def evaluate(p,r,now=None):
  tier='hidden'
  if not fails:
   if not missing_req:tier='eligible'
-  elif len(missing_req)<=2 and matched_req:tier='stretch'
+
  return {'role':r,'stage':stage,'tier':tier,'fit':fit,'category':None if tier=='hidden' else categorise(tier,fit,r.get('competitiveness',3)),'hardPasses':passes,'hardFails':fails,'matched':matched_req+matched_pref,'missingRequired':missing_req,'missingPreferred':missing_pref}
 def rank(results,mode='competitive'):
- arr=[r for r in results if r['tier']!='hidden']
+ arr=[r for r in results if r['tier']=='eligible']
  return sorted(arr,key=(lambda r:(-r['fit'],-r['role'].get('competitiveness',3))) if mode=='fit' else (lambda r:(-r['role'].get('competitiveness',3),-r['fit'])))
 def match_all(profile,roles,now=None):return [evaluate(profile,r,now) for r in roles]

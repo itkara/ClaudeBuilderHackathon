@@ -1,3 +1,5 @@
+> Historical invitation instructions: registration is now open at `/register/`. New users do not need an invitation. Existing invitation URLs remain compatible.
+
 # Judge access — Hireationship
 
 Hireationship uses invitation-only accounts so that API credits cannot be consumed through unrestricted public sign-ups.

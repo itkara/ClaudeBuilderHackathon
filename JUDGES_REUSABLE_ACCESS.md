@@ -1,3 +1,5 @@
+> Historical invitation instructions: registration is now open at `/register/`. New users do not need an invitation. Existing invitation URLs remain compatible.
+
 # Hackathon judge access
 
 The reusable judge link is included as a clickable link in the submission PDF. It is not displayed on the public login page or stored as plaintext in this repository.

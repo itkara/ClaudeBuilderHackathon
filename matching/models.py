@@ -6,6 +6,7 @@ class DailyAIUsage(models.Model):
     day = models.DateField()
     requests = models.PositiveIntegerField(default=0)
     generations = models.PositiveIntegerField(default=0)
+    job_searches = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'day'], name='unique_daily_ai_usage')]

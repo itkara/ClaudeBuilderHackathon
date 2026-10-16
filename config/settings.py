@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 load_dotenv(BASE_DIR / ".env")
 SECRET_KEY=os.environ.get('DJANGO_SECRET_KEY','development-only-not-for-production')
 DEBUG=os.environ.get('DJANGO_DEBUG','0')=='1'
-ALLOWED_HOSTS=[x.strip() for x in os.environ.get('DJANGO_ALLOWED_HOSTS','localhost,127.0.0.1').split(',') if x.strip()]
+ALLOWED_HOSTS=[x.strip() for x in os.environ.get('DJANGO_ALLOWED_HOSTS','localhost,127.0.0.1,itkara.pythonanywhere.com').split(',') if x.strip()]
 INSTALLED_APPS=['django.contrib.admin','django.contrib.messages','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.staticfiles','matching']
-MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.middleware.common.CommonMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','matching.middleware.PrivateAppMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
+MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.middleware.common.CommonMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','matching.ai_options.OptionalAIMiddleware','matching.middleware.PrivateAppMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF='config.urls'
 TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
 WSGI_APPLICATION='config.wsgi.application'
@@ -24,10 +24,6 @@ DATABASES = {
     }
 }
 
-ALLOWED_HOSTS = [
-    'itkara.pythonanywhere.com',
-]
-
 LOGIN_URL='/login/'
 LOGIN_REDIRECT_URL='/'
 SESSION_COOKIE_HTTPONLY=True
@@ -40,3 +36,10 @@ SESSION_COOKIE_AGE=8*60*60
 # HTTPS scheme so Django's CSRF Origin/Referer checks use the public URL.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = ['https://itkara.pythonanywhere.com']
+
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]

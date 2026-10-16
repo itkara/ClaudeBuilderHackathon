@@ -16,7 +16,7 @@
     <button data-view="swipe">2 · Swipe</button>
     <button data-view="tracker">3 · Applications <b id="appCount">0</b></button>
   </nav>
-  <span id="modeBadge" class="mode" title=""></span><button id="privacyOpen" class="btn ghost" type="button">Privacy & data</button>
+  <button id="claudeUpgrade" class="btn claudeUpgrade" type="button">✦ Enhance with Claude <small>Optional · paid API</small></button><span id="modeBadge" class="mode" title=""></span><button id="privacyOpen" class="btn ghost" type="button">Privacy & data</button>
 <form method="post" action="/logout/" style="display:inline">{% csrf_token %}<button class="btn ghost" type="submit">Sign out</button></form>
 </header>
 
@@ -24,8 +24,17 @@
   <!-- PROFILE -->
   <section id="view-profile" class="view">
     <h1>Roles that match you, not roles you chase.</h1>
-    <p class="lede">Tell us who you are. We find the internships and graduate roles you're actually eligible for, ranked by how competitive they are. You swipe. We write the applications for the ones you like.</p>
+    <p class="lede">Tell us who you are. We find the internships and graduate roles you're actually eligible for, ranked by how competitive they are. Swipe right to save a role for free. Choose Draft application in Applications when you are ready to use a generation.</p>
 
+    <details class="card" id="apiOptions">
+      <summary>Enhance with Claude · optional paid integration</summary>
+      <p class="hint">Free mode uses local CV matching and template packs. No paid AI key is needed. Live jobs use Hireationship’s shared Adzuna connection automatically.</p>
+      <label>Writing and matching mode <select id="aiMode"><option value="free">Free — local rules and templates</option><option value="personal">Claude — use my own API key</option><option value="server" hidden>Claude — use configured server key</option></select></label>
+      <div id="personalKeyPanel" hidden><label>Anthropic API key <input id="anthropicKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"></label><p class="hint">Optional. Claude sends your CV and job descriptions to Anthropic and may incur charges on your API account.</p></div>
+      <p class="hint">Your Claude key is used for requests from this tab only. They are not saved to your workspace or browser storage. Reloading clears them.</p>
+      <button id="applyApiOptions" type="button" class="btn">Apply writing mode</button>
+      <p id="apiOptionsMsg" class="hint"></p>
+    </details>
     <div class="grid2">
       <div class="card">
         <h2>Your base CV</h2>
@@ -50,12 +59,22 @@
           <label>Classification (current or predicted)
             <select id="f-class"><option value="">Select…</option><option>First</option><option>2:1</option><option>2:2</option><option>Third</option></select></label>
           <label>Right to work in the UK
-            <select id="f-rtw"><option value="UK">Yes, without sponsorship</option><option value="sponsorship">I would need sponsorship</option></select></label>
+            <select id="f-rtw"><option value="">Not confirmed</option><option value="UK">Yes, without sponsorship</option><option value="sponsorship">I would need sponsorship</option></select></label>
           <label class="wide">Skills (comma separated)<input id="f-skills" placeholder="python, statistics, writing"></label>
           <fieldset class="wide"><legend>Subject areas your degree counts as</legend><div id="subjectTags" class="tags"></div></fieldset>
           <label>GitHub<input id="f-github" placeholder="https://github.com/…"></label>
           <label>Portfolio / website<input id="f-portfolio"></label>
         </div>
+        <fieldset class="searchPreferences" id="searchPreferences">
+          <legend>What are you looking for?</legend>
+          <p class="hint">Your CV suggests interests; you choose where and what to search. These preferences are saved when you click Find my roles. Each interest/location combination uses one live-search attempt.</p>
+          <label>Locations to consider<select id="prefLocationMode"><option value="uk">Anywhere in the UK</option><option value="locations">Choose locations</option><option value="remote">Remote roles in the UK</option></select></label>
+          <label id="prefLocationsLabel" hidden>Preferred locations (up to two, comma separated)<input id="prefLocations" placeholder="e.g. London, Manchester"></label>
+          <label>Opportunity type<select id="prefOpportunity"><option value="auto">Suggest from graduation stage</option><option value="grad">Graduate roles</option><option value="internship">Internships</option><option value="placement">Placements</option><option value="insight">Insight programmes</option></select></label>
+          <p><strong>Roles of interest</strong> · choose up to three</p><div id="roleInterests" class="tags"></div>
+          <button id="suggestInterests" class="btn ghost" type="button">Suggest interests from my CV</button>
+          <label>Find roles from<select id="prefSource"><option value="live">Live vacancies</option><option value="demo">Demo examples</option></select></label>
+        </fieldset>
         <button id="findRoles" class="btn primary big">Find my roles →</button>
         <p class="hint" id="findMsg"></p>
       </div>
@@ -76,7 +95,7 @@
     </div>
     <div class="card" style="margin-bottom:1rem">
       <div class="row" style="align-items:center;justify-content:space-between">
-        <div><strong>Job source</strong><p class="hint" id="jobModeDescription">Demo: explore fictional example roles.</p></div>
+        <div><strong>Job source</strong><p class="hint" id="jobModeDescription">Demo: use the example student CV or a similar profile to match these fictional student and graduate roles.</p></div>
         <div class="row" role="group" aria-label="Job source">
           <button id="demoModeBtn" class="btn primary" type="button" aria-pressed="true">Demo</button>
           <button id="liveModeBtn" class="btn ghost" type="button" aria-pressed="false">Live</button>
@@ -85,18 +104,18 @@
     </div>
     <div id="liveModePanel" hidden>
     <details class="card jd" open><summary>Find real jobs · Adzuna</summary>
-<p class="hint">Real advertisements, not verified eligibility matches. Always confirm requirements and deadlines.</p>
-<div class="row"><label>Keywords <input id="liveKeywords" value="graduate analyst"></label><label>Location <input id="liveLocation" value="London"></label><button id="searchLiveJobs" class="btn">Search jobs</button></div>
-<p class="hint" id="liveJobsMsg"></p></details>
+<p class="hint">Real adverts screened against your CV using local rules, or optional Claude checks. Local screening covers recognised criteria only and excludes adverts it cannot interpret. Always confirm requirements and deadlines.</p>
+<div class="row"><p id="livePreferenceSummary" class="hint"></p><button id="editSearchPreferences" class="btn ghost" type="button">Edit preferences</button><button id="searchLiveJobs" class="btn" type="button">Refresh matches</button></div>
+<p class="hint" id="liveJobsMsg"></p><p id="autoCheckStatus" class="hint" role="status"></p><button id="checkMoreAdverts" class="btn ghost" type="button" hidden>Check next 5 full adverts</button><button id="loadMoreLiveJobs" type="button" class="btn ghost" hidden>Load more jobs</button><label class="check"><input type="checkbox" id="reviewLiveJobs"> Review adverts needing manual checks <span id="reviewLiveCount"></span></label><p class="hint">These adverts include unreadable pages and requirements the checker cannot assess. They are separate from matched roles; review the original advert before applying.</p></details>
 </div>
-    <div id="demoModePanel"><div id="families" class="tags"></div></div>
+    <div id="demoModePanel"><p class="hint">Demo roles are designed for the example student CV or a similar profile. Go to Profile → Load example → Find my roles to try them. Your own CV may match fewer or none.</p><div id="families" class="tags"></div></div>
     <div class="deckWrap">
       <div id="deck" class="deck" aria-live="polite"></div>
       <div class="swipeBtns">
         <button id="passBtn" class="round pass" title="Not for me (←)">✕</button>
-        <button id="likeBtn" class="round like" title="Draft my application (→)">♥</button>
+        <button id="likeBtn" class="round like" title="Save this role (→)">♥</button>
       </div>
-      <p class="hint center">Drag the card, use the buttons, or press ← / →. Right-swipes get a tailored CV, cover letter and checklist.</p>
+      <p class="hint center">Drag the card, use the buttons, or press ← / →. Right swipes save roles for free. Draft a pack later from Applications.</p>
     </div>
     <details class="card jd"><summary>Add a role from a job description</summary>
       <textarea id="jdText" rows="6" placeholder="Paste a full job description. Claude pulls out the requirements and checks them against you."></textarea>
@@ -113,6 +132,14 @@
     <details class="card jd" style="margin-top:1rem"><summary>The ick-to-FOMO list 👀 <span id="passedCount">0</span></summary><p class="hint">Gave you the ick at first glance? Now having second thoughts? Your left-swipes live here. Bring one back for a second chance 💘</p><div id="passedList"></div></details>
   </section>
 </main>
+<dialog id="jobDetailsDialog" aria-labelledby="jobDetailsTitle">
+  <div class="row" style="justify-content:space-between;align-items:center"><h2 id="jobDetailsTitle">Read and check full advert</h2><button id="closeJobDetails" class="btn ghost" type="button">Close</button></div>
+  <p id="jobDetailsStatus" role="status" class="hint">Loading original advert…</p>
+  <p class="hint">We try to read the public advert, then check the retrieved text against your profile. Some sites block access or need JavaScript. You can paste the full description below instead. A new page read uses one live-search allowance, not a pack-generation use. Cached page text is reused for six hours; each CV check runs against your current profile.</p>
+  <label>Full job description<textarea id="jobDetailsText" rows="12" maxlength="30000" style="width:100%;box-sizing:border-box"></textarea></label>
+  <div class="row"><button id="checkJobDetails" class="btn primary" type="button">Check this description</button><a id="originalJobLink" class="btn ghost" target="_blank" rel="noopener noreferrer">Open original advert ↗</a></div>
+  <ul id="jobDetailsReasons"></ul>
+</dialog>
 
 <dialog id="privacyDialog" aria-labelledby="privacyTitle">
   <div class="packHead"><h2 id="privacyTitle">Privacy & data</h2><button id="privacyClose" class="btn ghost" type="button">Close</button></div>
