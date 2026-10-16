@@ -86,7 +86,7 @@ class InvitationAdmin(admin.ModelAdmin):
         }
         response = TemplateResponse(request, 'admin/matching/invitation/generate.html', context)
         response['Cache-Control'] = 'no-store'
-        response['Referrer-Policy'] = 'no-referrer'
+        response['Referrer-Policy'] = 'same-origin'
         return response
 
 
