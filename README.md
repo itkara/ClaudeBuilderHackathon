@@ -8,7 +8,9 @@ Hireationship is a swipe-based graduate job discovery and application assistant.
 
 Built for the **Better Student Life** hackathon track.
 
-**Live preview:** https://itkara.pythonanywhere.com (invitation-only)
+**Public website:** [Visit Hireationship](https://itkara.pythonanywhere.com/) — anyone can open the site and its sign-in page; account registration and app access remain invitation-only.
+
+**Hackathon judges:** use the separate private registration link supplied in the submission PDF to create an account.
 
 ## What it does
 
