@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block title %}{{ title }} | Hireationship Admin{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin_hireationship.css' %}">{% endblock %}
+{% block branding %}
+<div class="hire-admin-brand"><span class="hire-admin-logo">💘</span><div><strong>Hireationship</strong><small>Private admin · Judge access</small></div></div>
+{% endblock %}
