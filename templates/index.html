@@ -110,7 +110,7 @@
     <div id="generationQuota" class="quotaCard" role="status" aria-live="polite" data-remaining="{{ generation_remaining }}" data-limit="{{ generation_limit }}"><div class="quotaTop"><span class="quotaEmoji" aria-hidden="true">{% if generation_remaining == 0 %}😭{% elif generation_remaining == 1 %}😱{% elif generation_remaining == generation_limit %}🔋{% else %}💖{% endif %}</span><div class="quotaCopy"><strong class="quotaTitle">{% if generation_remaining == 0 %}Out of juice!{% elif generation_remaining == 1 %}Last chance to impress!{% elif generation_remaining == generation_limit %}Fully charged, bestie!{% else %}Still got some spark!{% endif %}</strong><span class="quotaSubtitle">Application generations remaining today · resets tomorrow</span></div><strong class="quotaCount">{{ generation_remaining }}/{{ generation_limit }}</strong></div><div class="quotaTrack" aria-hidden="true"><div class="quotaFill" style="width:{% widthratio generation_remaining generation_limit 100 %}%"></div></div></div>
     <p class="lede small">Sorted by closing date. Every pack keeps the exact CV and cover letter version we drafted for that role.</p>
     <div id="trackerList"></div>
-    <details class="card jd" style="margin-top:1rem"><summary>Passed jobs <span id="passedCount">0</span></summary><p class="hint">Roles you swiped left on, saved to your account. You can restore them to the swipe deck.</p><div id="passedList"></div></details>
+    <details class="card jd" style="margin-top:1rem"><summary>The ick-to-FOMO list 👀 <span id="passedCount">0</span></summary><p class="hint">Gave you the ick at first glance? Now having second thoughts? Your left-swipes live here. Bring one back for a second chance 💘</p><div id="passedList"></div></details>
   </section>
 </main>
 
