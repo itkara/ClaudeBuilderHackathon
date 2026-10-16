@@ -54,7 +54,7 @@ const SUBJECT_TAGS = ['physics', 'maths', 'engineering', 'computer-science', 'ch
 const STATUSES = ['Ready to apply', 'Applied', 'Online assessment', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
 const FAMILY_NAMES = { 'quant-finance': 'Quant & finance', 'data-science': 'Data science', engineering: 'Engineering', consulting: 'Consulting', research: 'Research', 'policy-science-comms': 'Policy & science comms', 'patent-law': 'Patent law', software: 'Software', teaching: 'Teaching' };
 const EXAMPLE_CV = `Alex Example
-Fictional demo CV for exploring sample roles.
+Fictional final-year demo CV, designed to match the maximum seven compatible sample roles.
 BSc Physics, University of Exampleshire. Graduating 2027, predicted First.
 Right to work in the UK without sponsorship.
 github.com/alex-example
@@ -64,11 +64,12 @@ Experience
 - Applied problem solving to debug measurement errors and documented the findings through technical writing, checking units and references with attention to detail.
 - Tutored six students in mechanics, practising communication and public speaking through weekly explanations and feedback.
 - Managed the Astronomy Society budget in Excel and delivered a presentation on spending to 60 members.
-- Produced science explainers for the student magazine, using writing and research to communicate physics to a general audience.
+- Produced science explainers for the student magazine, using writing and research to communicate physics to a general audience; created accompanying clips with video editing and managed social media posts.
 
 Projects
 - Used Python and MATLAB for modelling a three-body orbit with numerical methods and optimisation; wrote a technical report comparing simulated and measured results.
 - Built a small Python and JavaScript data dashboard with Git version control, testing and documented algorithms.
+- Developed a C++ sensor simulation for a systems engineering project, testing interfaces and documenting design requirements.
 - Created a machine learning experiment and evaluated prediction uncertainty using probability and statistics.`;
 
 let profile = store.get('profile', null);

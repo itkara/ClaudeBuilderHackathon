@@ -112,6 +112,10 @@ class EligibilityTests(SimpleTestCase):
         results = matcher.rank(matcher.match_all(profile, views.load_roles(), self.now))
         self.assertGreaterEqual(len(results), 7)
         self.assertEqual({r['role']['id'] for r in results}, {'s02','s03','s04','s06','s09','s11','s12'})
+        self.assertTrue(all(result['fit']==100 for result in results))
+        roles=views.load_roles()
+        maximum=max(sum(stage in role['stages'] for role in roles) for stage in ('early','penultimate','final'))
+        self.assertEqual(len(results),maximum)
 
 
 from django.test import TestCase
