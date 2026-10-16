@@ -71,21 +71,47 @@ The login page will then show **Request an invitation**. Clicking it opens the v
 3. Copy the printed private link and reply with it.
 4. The recipient opens the link, chooses a username and password, and can then sign in.
 
-Suggested reply:
+### Full email template — access requests
 
-> **Subject: Your invitation to Hireationship**
->
-> Hi,
->
-> Thanks for your interest in Hireationship! You can create an account using this private registration link:
->
-> [PASTE UNIQUE LINK HERE]
->
-> The invitation can be used once and expires in [7/30] days. Once registered, you can explore the graduate job matching and application-generation features. Daily generation limits apply during the hackathon preview.
->
-> Please let me know if you have trouble accessing the app.
->
-> Best wishes
+**Subject: Your invitation to Hireationship**
+
+Hi,
+
+Thank you for your interest in Hireationship!
+
+You can create your account using the private registration link below:
+
+**[INSERT UNIQUE REGISTRATION LINK]**
+
+Once registered, you'll be able to explore Hireationship, discover graduate opportunities, and generate tailored application materials.
+
+Please note that this invitation is single-use and expires in **7 days** (or **30 days** if you generated it using `--days 30`). As Hireationship is currently in its hackathon preview stage, application generations are subject to a daily limit.
+
+I'd love to hear any feedback you have! If you encounter any issues accessing the app, please feel free to reply to this email.
+
+Best wishes,  
+Ipek
+
+### Full email template — hackathon judges
+
+**Subject: Hireationship | Hackathon Demo Access**
+
+Hi,
+
+Thank you for taking the time to review Hireationship!
+
+You can access the application here:
+
+**Website:** https://itkara.pythonanywhere.com
+
+**Your private registration link:** [INSERT UNIQUE REGISTRATION LINK]
+
+The invitation is single-use and valid for **30 days**. Once you've created your account, you can explore the graduate job-matching and application-generation features.
+
+Please feel free to get in touch if you encounter any issues accessing the demo.
+
+Best wishes,  
+Ipek
 
 ## Troubleshooting
 
