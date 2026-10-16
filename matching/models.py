@@ -21,3 +21,16 @@ class Invitation(models.Model):
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
     used_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+
+class JudgeInvite(models.Model):
+    """Reusable, revocable, time-limited invite; only the SHA-256 token digest is stored."""
+    token_hash = models.CharField(max_length=64, unique=True)
+    label = models.CharField(max_length=100, default='Hackathon judges')
+    max_signups = models.PositiveIntegerField(default=15)
+    signups = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField()
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.label} ({self.signups}/{self.max_signups})'

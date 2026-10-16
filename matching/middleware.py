@@ -12,7 +12,7 @@ class PrivateAppMiddleware:
 
     def __call__(self, request):
         path = request.path
-        if path.startswith('/static/') or path in ('/login/', '/register/', '/favicon.ico'):
+        if path.startswith('/static/') or path in ('/login/', '/register/', '/judges/', '/favicon.ico'):
             return self.get_response(request)
         if not request.user.is_authenticated:
             if path.startswith('/api/'):
