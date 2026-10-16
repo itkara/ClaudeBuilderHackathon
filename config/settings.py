@@ -35,3 +35,8 @@ SESSION_COOKIE_SAMESITE='Lax'
 SESSION_COOKIE_SECURE=not DEBUG
 CSRF_COOKIE_SECURE=not DEBUG
 SESSION_COOKIE_AGE=8*60*60
+
+# PythonAnywhere terminates HTTPS at its reverse proxy. Recognise the original
+# HTTPS scheme so Django's CSRF Origin/Referer checks use the public URL.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = ['https://itkara.pythonanywhere.com']
