@@ -6,9 +6,9 @@ Hireationship is a swipe-based graduate job discovery and application assistant.
 
 Built for the **Better Student Life** hackathon track.
 
-**Public website:** [Visit Hireationship](https://itkara.pythonanywhere.com/) — anyone can open the site and its sign-in page; account registration and app access remain invitation-only.
+**Public website:** [Visit Hireationship](https://itkara.pythonanywhere.com/) — anyone can open the site and its sign-in page; anyone can register for an account at [Sign up](https://itkara.pythonanywhere.com/register/).
 
-**Hackathon judges:** use the separate private registration link supplied in the submission PDF to create an account.
+**Registration:** [Create an account](https://itkara.pythonanywhere.com/register/) — the same link for everyone; no judge-specific registration.
 
 **Because you should have hire standards.**
 
@@ -44,10 +44,10 @@ Claude powers AI-assisted reading and writing when an Anthropic key is configure
 - Keep application status and documents in an **Applications tracker**, ordered by deadline where dates are available.
 - Return to saved applications later, even from another browser after signing into the same account.
 
-### 5. Private accounts and invite-only access
-- Sign in to an account to use the app; **open self-registration is disabled**.
-- A project administrator generates **single-use, expiring invitation links** for testers and hackathon judges.
-- The login page can offer **Request an invitation** by opening a prefilled email to a configured contact address.
+### 5. Private accounts and public registration
+- Sign in to an account to use the app; **self-registration is available at /register/**.
+- All visitors use the same public registration page; accounts have private workspaces.
+- The login page retains an **email contact link** for questions and access issues when a contact address is configured.
 - Each user's profile, CV text, saved roles, passed-history and application drafts are stored in **account-linked SQLite workspace data**, rather than relying on browser local storage. Existing browser data may be migrated once when first upgrading.
 - Privacy controls include an option to delete workspace data. This does not necessarily remove account credentials, operational logs or hosting backups.
 
@@ -60,9 +60,9 @@ Claude powers AI-assisted reading and writing when an Anthropic key is configure
 
 ## Try the preview
 
-Visit **https://itkara.pythonanywhere.com** and sign in with an existing account, or use a private registration link from the project team.
+Visit **https://itkara.pythonanywhere.com** and sign in with an existing account, or [register for an account](https://itkara.pythonanywhere.com/register/).
 
-For judge invitations, deployment and the access-request email templates, see **[JUDGES_ACCESS.md](JUDGES_ACCESS.md)** (added in PR #11). Each invite can be redeemed once; never publish real invitation tokens in the repository.
+Registration is open at **/register/**. The older invitation machinery is retained only for historical database compatibility; judge-specific signup is retired.
 
 ## Local development
 
@@ -94,13 +94,7 @@ On Windows, activate with `.venv\Scripts\activate`. Set a local `DJANGO_SECRET_K
 | `HIREATIONSHIP_AI_ENABLED` | Set to `0` to temporarily disable Claude-backed features |
 | `HIREATIONSHIP_INVITE_CONTACT_EMAIL` | Email address for login-page access requests (PR #11) |
 
-To create a judge invitation after applying the invite migration:
-
-```bash
-python manage.py create_invite --days 30
-```
-
-Run again for each person. Invitations are single-use. The default validity without `--days` is seven days.
+Public registration is available at `/register/`; invitation-generation commands are no longer required.
 
 ### PythonAnywhere deployment
 
@@ -133,12 +127,12 @@ Then go to **PythonAnywhere → Web → Reload** and hard-refresh the browser. B
 config/                 Django settings, URLs and WSGI configuration
 matching/               Eligibility matching, API endpoints, Claude integration,
                         data models, access controls and migrations
-matching/management/    Invitation-generation command (PR #11)
-templates/              App, login and invite registration templates
+matching/management/    Legacy invitation-generation command (unused)
+templates/              App, login and registration templates
 static/                 Frontend JavaScript and CSS
 requirements.txt        Python dependencies
 manage.py               Django management entry point
-JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
+JUDGES_ACCESS.md        Legacy judge onboarding documentation (not in use)
 ```
 
 ## Current limitations and roadmap
@@ -147,7 +141,7 @@ JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
 - **Demo listings are illustrative**, not real vacancies. Competitiveness and fit are estimates, not admission probabilities.
 - **AI-generated text requires human review.** The app aims not to invent experience, but generated claims and formatting should always be checked.
 - **Free-tier constraints:** SQLite and hosted storage are intentionally lightweight; generated PDF files and original uploads are not maintained as permanent server-side files.
-- **Invitation approval is manual.** The request-access link opens an email client; there is no automatic email service or open sign-up.
+- **Public registration is enabled.** Protect the deployment against automated signups and monitor API quotas before wider promotion.
 - **Future ideas:** deadline reminders, improved job coverage and matching, more export formats, and optional paid tiers. These are **not currently available**.
 
 ---
