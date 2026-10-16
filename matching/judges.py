@@ -29,5 +29,5 @@ def judges(request):
                     return redirect('/')
     response = render(request, 'judges.html', {'form': form, 'invite': token, 'valid_invite': valid})
     response['Cache-Control'] = 'no-store'
-    response['Referrer-Policy'] = 'no-referrer'
+    response['Referrer-Policy'] = 'same-origin'
     return response
