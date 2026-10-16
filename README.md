@@ -1,7 +1,5 @@
 # Hireationship 💌
 
-**Because you should have hire standards.**
-
 *Tired of being ghosted? Match with employers ready to commit.*
 
 Hireationship is a swipe-based graduate job discovery and application assistant. Instead of making students sift through hundreds of vacancies, it starts with their CV, checks their eligibility, explains the fit, and helps draft tailored applications for the roles they like.
@@ -11,6 +9,8 @@ Built for the **Better Student Life** hackathon track.
 **Public website:** [Visit Hireationship](https://itkara.pythonanywhere.com/) — anyone can open the site and its sign-in page; account registration and app access remain invitation-only.
 
 **Hackathon judges:** use the separate private registration link supplied in the submission PDF to create an account.
+
+**Because you should have hire standards.**
 
 ## What it does
 
