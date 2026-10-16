@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create account · Hireationship</title>
 <style>body{font-family:system-ui,sans-serif;background:#faf5ee;color:#281d1b;display:grid;place-items:center;min-height:100dvh;margin:0;padding:1rem;box-sizing:border-box}main{background:white;border:1px solid #eaded5;border-radius:18px;padding:clamp(1.25rem,5vw,2rem);box-sizing:border-box;width:min(100%,400px)}input{font-size:16px;display:block;width:100%;box-sizing:border-box;padding:.7rem;margin:.5rem 0 1rem;border:1px solid #d7c8bd;border-radius:8px}button{background:#c43d09;color:white;border:0;border-radius:9px;padding:.8rem 1.3rem;cursor:pointer}p,li{color:#665b55}a{color:#a3330a}.errorlist{color:#ad2424}</style></head>
-<body><main><h1>Join Hireationship</h1><p>Invitation-only preview. Each invite works once.</p>
-{% if not valid_invite %}<p role="alert">You need a valid, unused invitation link to register.</p>{% else %}
-<form method="post">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite }}">
+<body><main><h1>Join Hireationship</h1><p>Your invitation unlocks a private account. Registration is limited during the hackathon preview.</p>
+{% if not valid_invite %}<p role="alert">This invitation is invalid, expired or has reached its registration limit. Request a new link from the sign-in page.</p>{% else %}
+<form method="post" action="/register/">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite }}">
 {{ form.as_p }}<button type="submit">Create account</button></form>
 {% endif %}
 <p><a href="/login/">Already have an account? Sign in</a></p></main></body></html>
