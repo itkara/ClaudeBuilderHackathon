@@ -4,6 +4,7 @@ from datetime import timedelta
 from urllib.parse import urlencode
 from django import forms
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.http import HttpResponseNotAllowed
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
@@ -89,11 +90,19 @@ class InvitationAdmin(admin.ModelAdmin):
         return response
 
 
+admin.site.unregister(Group)
+
+
 @admin.register(JudgeInvite)
 class JudgeInviteAdmin(admin.ModelAdmin):
     list_display = ('label', 'signups', 'max_signups', 'expires_at', 'active')
     list_editable = ('max_signups', 'active')
     readonly_fields = ('token_hash', 'signups', 'created_at')
     fields = ('label', 'signups', 'max_signups', 'expires_at', 'active', 'token_hash', 'created_at')
+
+    def has_module_permission(self, request):
+        # Hide the shared-invite controls from the index; retain their admin URLs.
+        return False
+
     def has_add_permission(self, request):
         return False
