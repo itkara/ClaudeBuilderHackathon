@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Judge preview - Hireationship</title>
 <style>*{box-sizing:border-box}body{font:16px/1.5 system-ui;background:#fff4f9;color:#321d2b;margin:0;padding:20px}main{max-width:530px;margin:25px auto;background:white;border:2px solid #f5b5d2;border-radius:20px;padding:24px}input{font-size:16px;width:100%;padding:10px;margin:5px 0 12px}button{background:#d63379;color:white;border:0;border-radius:10px;padding:12px;font-size:16px}a{color:#c21865}</style></head>
-<body><main><h1>Judge access to Hireationship 💘</h1>
+<body><script>if (window.top !== window.self) { try { window.top.location.href = window.location.href; } catch (e) { /* Browser may prevent top-level navigation from embedded previews. */ } }</script><main><h1>Judge access to Hireationship 💘</h1>
 <p>Welcome! Your personal preview takes four steps:</p>
 <ol><li>Create your private account below.</li><li>Upload a sample CV or enter your experience.</li><li>Discover and swipe on sample or live UK jobs.</li><li>Generate, edit and export an application pack.</li></ol>
 <p>Each account has a private workspace and a daily application-generation allowance.</p>
 {% if valid_invite %}
 <h2>Create your account</h2>
-<form method="post">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite }}">{{ form.as_p }}<button type="submit">Start exploring</button></form>
+<form method="post" action="/judges/" target="_top">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite }}">{{ form.as_p }}<button type="submit">Start exploring</button></form>
 {% else %}
 <p role="alert">This invitation is invalid, expired or full. Please contact the project creator.</p>
 {% endif %}
