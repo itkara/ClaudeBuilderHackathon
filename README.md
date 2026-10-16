@@ -1,68 +1,153 @@
-# Hireationship
+# Hireationship 💌
 
-**Tired of being ghosted? Match with employers ready to commit.**
+**Because you should have hire standards.**
 
-Most job platforms start from the jobs and leave you to work out whether you fit. Hireationship starts from *you*: it works out which roles you are actually eligible for, ranks them by how competitive they are, and lets you swipe. For every role you swipe right on, it writes the application: a tailored CV, a cover letter if the employer wants one, a checklist of the supporting documents you will need, and a plan for closing any gaps before the deadline.
+*Tired of being ghosted? Match with employers ready to commit.*
 
-Built for the **Better Student Life** track.
+Hireationship is a swipe-based graduate job discovery and application assistant. Instead of making students sift through hundreds of vacancies, it starts with their CV, checks their eligibility, explains the fit, and helps draft tailored applications for the roles they like.
 
-## How it works
+Built for the **Better Student Life** hackathon track.
 
-1. **You.** Paste your base CV and confirm a few details (graduation year, classification, right to work, subject areas).
-2. **Matching.** Roles are sorted into *eligible* (you meet everything), *stretch* (a close match) or *hidden* (you fail a hard requirement). Each eligible role is labelled **reach / target / safe** by comparing how strong a fit you are with how competitive the role is, and the deck is ordered most competitive first (or best fit first, your choice).
-3. **Swipe.** Left = not for me. Right = draft my application. Drag the card, use the buttons, or press the arrow keys.
-4. **Application pack** (right-swipes only):
-   - a CV reordered and reworded for that role, using only what is in your real CV
-   - a cover letter, if the employer asks for one
-   - supporting documents beyond the basics (GitHub, portfolio, writing sample, transcript…), marked *you have this* or *to prepare*
-   - a gap plan: concrete things to do before the deadline to close what is missing
-   - a trace showing which line of your CV each claim came from
-5. **Applications.** A tracker sorted by closing date, with status per application and the exact documents drafted for each.
+**Live preview:** https://itkara.pythonanywhere.com (invitation-only)
 
-## Design decisions worth knowing
+## What it does
 
-- **Eligibility is deterministic, not guessed.** Hard requirements (stage, classification, subject, right to work, deadline) and required skills are checked by plain code in [`lib/matcher.js`](lib/matcher.js), with tests. Every card shows why it is there. Claude is used for the parts that need language: reading the CV, suggesting role families beyond the obvious, extracting requirements from pasted job descriptions, and writing the pack.
-- **Stage comes from graduation year**, not "year 2 / year 3", because integrated masters and placement years make year numbers ambiguous.
-- **The tailoring never invents experience.** The prompt forbids it, missing skills go into the gap plan instead of being hidden behind vague wording, and the trace tab lets you check every claim.
-- **Competitiveness is an estimate.** There is no public acceptance-rate data, so each role carries a 1-5 estimate and the UI says so.
+### 1. Build your profile
+- Upload a **PDF or Word (.docx) CV**, or paste CV text.
+- Extract structured experience and skills, then review and edit your profile.
+- Add graduation year, degree subject, predicted classification, right-to-work details, interests and links.
+- The original uploaded file is processed for text extraction, not intentionally retained as a stored upload.
 
-## Run it
+### 2. Discover jobs that fit
+- Switch between **live UK vacancies from Adzuna** (when API credentials are configured) and an **illustrative demo deck**.
+- Eligibility and matching rules check graduation stage, academic requirements, subject, skills and other available criteria.
+- See **eligible / stretch** assessments, **reach / target / safe** labels, estimated competitiveness, and reasons for a match.
+- Hard-ineligible opportunities are filtered out; missing or unverified information should still be checked against the employer's original advert.
+- Paste a job description to add a role to your deck.
+- Swipe left to pass, or swipe right to save and draft; passed roles are retained in your private history and can be revisited.
 
-Requires Node 18 or newer. No dependencies to install.
+### 3. Generate a tailored application pack
+For each generated application, Hireationship prepares:
+- A tailored **CV** grounded in the experience you actually provided.
+- A **cover letter** where relevant.
+- A **supporting-document checklist**.
+- A **gap-closing plan** for missing requirements.
+- A **trace** to help check claims against the source CV.
+
+Claude powers AI-assisted reading and writing when an Anthropic key is configured. Without one, the app uses rule-based/template alternatives. **Review everything before submitting**: AI output and eligibility estimates are not guarantees.
+
+### 4. Edit, export and track
+- Edit application documents in the app.
+- Copy content, download a Markdown pack, and **export formatted PDFs**.
+- Keep application status and documents in an **Applications tracker**, ordered by deadline where dates are available.
+- Return to saved applications later, even from another browser after signing into the same account.
+
+### 5. Private accounts and invite-only access
+- Sign in to an account to use the app; **open self-registration is disabled**.
+- A project administrator generates **single-use, expiring invitation links** for testers and hackathon judges.
+- The login page can offer **Request an invitation** by opening a prefilled email to a configured contact address.
+- Each user's profile, CV text, saved roles, passed-history and application drafts are stored in **account-linked SQLite workspace data**, rather than relying on browser local storage. Existing browser data may be migrated once when first upgrading.
+- Privacy controls include an option to delete workspace data. This does not necessarily remove account credentials, operational logs or hosting backups.
+
+### 6. Daily generation allowances
+- Each free user has a **daily application-generation allowance**, configurable by the project administrator (default: **3**).
+- The **Applications** page displays the remaining allowance; it updates when an application is generated.
+- Users are warned before using their last generation; further generations are blocked at zero until the next calendar day in the server's configured timezone.
+- **Regeneration and failed attempts also count**; simply viewing, editing or downloading existing documents does not.
+- A separate optional daily limit applies to Claude-backed requests. **Paid plans are not implemented.**
+
+## Try the preview
+
+Visit **https://itkara.pythonanywhere.com** and sign in with an existing account, or use a private registration link from the project team.
+
+For judge invitations, deployment and the access-request email templates, see **[JUDGES_ACCESS.md](JUDGES_ACCESS.md)** (added in PR #11). Each invite can be redeemed once; never publish real invitation tokens in the repository.
+
+## Local development
+
+The current implementation is **Python/Django**, not the original Node.js prototype.
+
+Requirements: Python 3.10+ and pip. From the repository root:
 
 ```bash
-cp .env.example .env      # optional: add ANTHROPIC_API_KEY for Claude mode
-npm start                 # http://localhost:3000
-npm test
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
 ```
 
-- **Claude mode** (API key set): CV reading, role-family suggestions, job-description import and the application pack are all written by Claude. The key stays on the server.
-- **Demo mode** (no key): the whole flow works offline using rule-based matching and templated writing built from your own CV lines. Good for trying the app, not representative of the writing quality.
+On Windows, activate with `.venv\Scripts\activate`. Set a local `DJANGO_SECRET_KEY` and suitable `DJANGO_ALLOWED_HOSTS` in `.env`; keep `DJANGO_DEBUG=1` for local-only development. Check the existing `.env.example` for other supported settings. Never commit `.env`, API keys, invite links, or real user data.
 
-Your profile, swipes and applications are stored in your browser's local storage only.
+### Optional integrations and limits
 
-## Honest limitations
+| Setting | Purpose |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Enable Claude-assisted features; otherwise use template/demo writing |
+| `ANTHROPIC_MODEL` | Optional Claude model override |
+| `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` | Enable live Adzuna vacancy search |
+| `HIREATIONSHIP_DAILY_GENERATION_LIMIT` | Application generation attempts per user per day; default `3` |
+| `HIREATIONSHIP_DAILY_AI_LIMIT` | Claude-backed requests per user per day; default `20` |
+| `HIREATIONSHIP_AI_ENABLED` | Set to `0` to temporarily disable Claude-backed features |
+| `HIREATIONSHIP_INVITE_CONTACT_EMAIL` | Email address for login-page access requests (PR #11) |
 
-- The roles in `data/roles.json` are **illustrative samples** with fictional employers, not live vacancies. Real listings need a data source (see roadmap). Each card says "Sample listing" and always tells you to confirm criteria and deadlines on the employer's own page.
-- You can add a real role today by pasting a job description (Claude mode): it is extracted, checked against your profile and slotted into your deck.
-- Local-storage persistence is per browser. There are no accounts.
+To create a judge invitation after applying the invite migration:
 
-## Roadmap
-
-- Live role feed (employer career pages or an approved jobs API) in place of the sample file
-- Upload CV as PDF/DOCX
-- Export packs as .docx / PDF
-- Per-role deadline reminders
-- Optional accounts so the tracker follows you across devices
-
-## Project layout
-
+```bash
+python manage.py create_invite --days 30
 ```
-server.js          HTTP server and API routes (no framework)
-lib/matcher.js     eligibility, reach/target/safe, ranking (tested)
-lib/claude.js      Anthropic API calls and prompts
-lib/demo.js        offline fallback used when no API key is set
-data/roles.json    sample roles
-public/            single-page front end (vanilla JS)
-test/              unit tests (node --test)
+
+Run again for each person. Invitations are single-use. The default validity without `--days` is seven days.
+
+### PythonAnywhere deployment
+
+The live instance runs on PythonAnywhere with SQLite and static assets served from the configured static directory. After merging a PR:
+
+```bash
+cd ~/ClaudeBuilderHackathon
+workon hireationship-env
+git pull --ff-only origin main
+python manage.py migrate
+python manage.py check
+python manage.py collectstatic --noinput
 ```
+
+Then go to **PythonAnywhere → Web → Reload** and hard-refresh the browser. Back up the local `db.sqlite3` before significant schema changes. The database and `.env` are server-local files and must not be committed.
+
+## Technology
+
+- **Backend:** Python, Django, SQLite, Django authentication and middleware
+- **Frontend:** vanilla JavaScript, HTML and CSS
+- **Job feed:** Adzuna API (optional) plus illustrative sample roles
+- **Writing:** Anthropic Claude API (optional), with template fallback
+- **CV ingestion:** pypdf and python-docx
+- **PDF export:** ReportLab
+- **Hosting:** PythonAnywhere
+
+## Repository layout
+
+```text
+config/                 Django settings, URLs and WSGI configuration
+matching/               Eligibility matching, API endpoints, Claude integration,
+                        data models, access controls and migrations
+matching/management/    Invitation-generation command (PR #11)
+templates/              App, login and invite registration templates
+static/                 Frontend JavaScript and CSS
+requirements.txt        Python dependencies
+manage.py               Django management entry point
+JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
+```
+
+## Current limitations and roadmap
+
+- **Job eligibility is not verified by employers.** Live advertisements may omit critical criteria; always confirm right-to-work rules, deadlines, sponsorship and requirements at the original source.
+- **Demo listings are illustrative**, not real vacancies. Competitiveness and fit are estimates, not admission probabilities.
+- **AI-generated text requires human review.** The app aims not to invent experience, but generated claims and formatting should always be checked.
+- **Free-tier constraints:** SQLite and hosted storage are intentionally lightweight; generated PDF files and original uploads are not maintained as permanent server-side files.
+- **Invitation approval is manual.** The request-access link opens an email client; there is no automatic email service or open sign-up.
+- **Future ideas:** deadline reminders, improved job coverage and matching, more export formats, and optional paid tiers. These are **not currently available**.
+
+---
+
+*Hireationship helps you find opportunities worth pursuing — and spend less time rewriting the same application.*
