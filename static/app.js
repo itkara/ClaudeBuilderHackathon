@@ -308,11 +308,20 @@ async function refreshGenerationQuota() {
   try {
     const quota = await api('/api/generation-quota');
     const remaining = quota.remaining;
-    element.textContent = `Free plan · ${remaining} of ${quota.limit} application generations remaining today` + (remaining === 1 ? ' — last one!' : remaining === 0 ? ' — resets tomorrow' : '');
-    element.style.fontWeight = remaining <= 1 ? '700' : '';
+    const limit = Math.max(0, Number(quota.limit) || 0);
+    const full = limit > 0 && remaining === limit;
+    const mood = remaining === 0 ? ['😭', 'Out of juice!'] : remaining === 1 ? ['😱', 'Last chance to impress!'] : full ? ['🔋', 'Fully charged, bestie!'] : ['💖', 'Still got some spark!'];
+    element.dataset.remaining = String(remaining);
+    element.dataset.limit = String(limit);
+    element.querySelector('.quotaEmoji').textContent = mood[0];
+    element.querySelector('.quotaTitle').textContent = mood[1];
+    element.querySelector('.quotaCount').textContent = `${remaining}/${limit}`;
+    element.querySelector('.quotaSubtitle').textContent = remaining === 0 ? 'Your free generations reset tomorrow' : 'Application generations remaining today · resets tomorrow';
+    element.querySelector('.quotaFill').style.width = `${limit ? Math.max(0, Math.min(100, remaining / limit * 100)) : 0}%`;
     return quota;
   } catch {
-    element.textContent = 'Generation allowance unavailable — please try again.';
+    element.querySelector('.quotaTitle').textContent = 'Could not check your energy';
+    element.querySelector('.quotaSubtitle').textContent = 'Please refresh to try again.';
     return null;
   }
 }
