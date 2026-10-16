@@ -10,8 +10,8 @@ class HireationshipLoginView(LoginView):
         email = os.getenv('HIREATIONSHIP_INVITE_CONTACT_EMAIL', '').strip()
         if email and '@' in email and not any(c in email for c in '\r\n?&#'):
             query = urlencode({
-                'subject': 'Hireationship hackathon preview — access request',
-                'body': 'Hello,\n\nI would like to request an invitation to try Hireationship.\n\nMy name / role:\n\nThank you!'
+                'subject': 'Hireationship — registration access request',
+                'body': 'Hello,\n\nI would like to request access to Hireationship.\n\nMy name:\nUniversity or organisation (optional):\n\nI would appreciate a registration link when one is available.\n\nThank you,\n'
             })
             context['invite_request_url'] = f'mailto:{email}?{query}'
         return context
