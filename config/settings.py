@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv(BASE_DIR / ".env")
 SECRET_KEY=os.environ.get('DJANGO_SECRET_KEY','development-only-not-for-production')
 DEBUG=os.environ.get('DJANGO_DEBUG','0')=='1'
-ALLOWED_HOSTS=[x.strip() for x in os.environ.get('DJANGO_ALLOWED_HOSTS','localhost,127.0.0.1,itkara.pythonanywhere.com').split(',') if x.strip()]
+from .hosting import host_settings
+ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS = host_settings()
 INSTALLED_APPS=['django.contrib.admin','django.contrib.messages','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.staticfiles','matching']
 MIDDLEWARE=['django.middleware.security.SecurityMiddleware','django.middleware.common.CommonMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','matching.ai_options.OptionalAIMiddleware','matching.middleware.PrivateAppMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF='config.urls'
@@ -35,7 +36,7 @@ SESSION_COOKIE_AGE=8*60*60
 # PythonAnywhere terminates HTTPS at its reverse proxy. Recognise the original
 # HTTPS scheme so Django's CSRF Origin/Referer checks use the public URL.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_TRUSTED_ORIGINS = ['https://itkara.pythonanywhere.com']
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

@@ -162,3 +162,7 @@ JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
 ---
 
 *Hireationship helps you find opportunities worth pursuing — and spend less time rewriting the same application.*
+
+### Vercel hostname configuration
+
+Django adds the exact deployment, branch and production hostnames from `VERCEL_URL`, `VERCEL_BRANCH_URL` and `VERCEL_PROJECT_PRODUCTION_URL` to its host and CSRF-origin lists. Enable system environment variables in Vercel and redeploy after updating the code. `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` can provide additional explicit domains. Other Vercel tenants are not trusted. This host configuration does not migrate the existing SQLite database or provide persistent database storage on Vercel.

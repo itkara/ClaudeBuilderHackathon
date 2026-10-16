@@ -422,3 +422,39 @@ class RestrictedHostingTests(TestCase):
     @patch.dict('os.environ', {'HIREATIONSHIP_FULL_ADVERT_FETCH_ENABLED':'1','http_proxy':'http://proxy.server:3128'})
     def test_explicit_host_configuration_is_respected(self):
         self.assertTrue(self.client.get('/api/status').json()['fullAdvertReadsAvailable'])
+
+
+class DeploymentHostTests(SimpleTestCase):
+    def test_exact_vercel_preview_branch_and_production_hosts_are_allowed(self):
+        from config.hosting import host_settings
+        from django.test import override_settings
+        env={'DJANGO_ALLOWED_HOSTS':'itkara.pythonanywhere.com','VERCEL_URL':'claude-builder-hackathon-bunssce69-itkara.vercel.app','VERCEL_BRANCH_URL':'claude-builder-git-main-itkara.vercel.app','VERCEL_PROJECT_PRODUCTION_URL':'hireationship.example.com'}
+        hosts,origins=host_settings(env)
+        for host in [env['VERCEL_URL'],env['VERCEL_BRANCH_URL'],env['VERCEL_PROJECT_PRODUCTION_URL']]:
+            self.assertIn(host,hosts)
+            self.assertIn('https://'+host,origins)
+            with override_settings(ALLOWED_HOSTS=hosts):
+                self.assertEqual(RequestFactory().get('/',HTTP_HOST=host).get_host(),host)
+        self.assertIn('itkara.pythonanywhere.com',hosts)
+        self.assertNotIn('.vercel.app',hosts)
+        self.assertNotIn('*',hosts)
+
+    def test_unrelated_and_invalid_hosts_remain_rejected(self):
+        from config.hosting import host_settings
+        from django.test import override_settings
+        from django.core.exceptions import DisallowedHost
+        hosts,origins=host_settings({'VERCEL_URL':'https://bad.vercel.app/path','VERCEL_BRANCH_URL':'*.vercel.app'})
+        self.assertNotIn('https://bad.vercel.app/path',hosts)
+        with override_settings(ALLOWED_HOSTS=hosts),self.assertRaises(DisallowedHost):
+            RequestFactory().get('/',HTTP_HOST='unrelated.vercel.app').get_host()
+        self.assertEqual(origins,['https://itkara.pythonanywhere.com'])
+
+    def test_csrf_origin_matches_allowed_vercel_host(self):
+        from config.hosting import host_settings
+        from django.middleware.csrf import CsrfViewMiddleware
+        from django.test import override_settings
+        host='claude-builder-hackathon-bunssce69-itkara.vercel.app'
+        hosts,origins=host_settings({'VERCEL_URL':host})
+        request=RequestFactory().post('/login/',HTTP_HOST=host,HTTP_ORIGIN='https://'+host,secure=True)
+        with override_settings(ALLOWED_HOSTS=hosts,CSRF_TRUSTED_ORIGINS=origins):
+            self.assertTrue(CsrfViewMiddleware(lambda req:None)._origin_verified(request))
