@@ -4,4 +4,5 @@
 <body><main><h1>Hireationship</h1><p>Private hackathon preview. Sign in with an invited account.</p>
 {% if form.errors %}<p role="alert">Incorrect username or password.</p>{% endif %}
 <form method="post">{% csrf_token %}<label>Username<input name="username" autocomplete="username" required autofocus></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form>
+<p>Have an invite? Open the private registration link you received to create an account.</p>
 </main></body></html>
