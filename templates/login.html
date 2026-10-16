@@ -1,7 +1,17 @@
 <!doctype html>
 <html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · Hireationship</title>
-<style>body{font-family:system-ui,sans-serif;background:#faf5ee;color:#281d1b;display:grid;place-items:center;min-height:90vh}main{background:white;border:1px solid #eaded5;border-radius:18px;padding:2rem;width:min(90vw,380px)}input{display:block;width:100%;box-sizing:border-box;padding:.7rem;margin:.5rem 0 1rem;border:1px solid #d7c8bd;border-radius:8px}button{background:#c43d09;color:white;border:0;border-radius:9px;padding:.8rem 1.3rem;cursor:pointer}p{color:#665b55}</style></head>
+<style>body{font-family:system-ui,sans-serif;background:#faf5ee;color:#281d1b;display:grid;place-items:center;min-height:90vh}main{background:white;border:1px solid #eaded5;border-radius:18px;padding:2rem;width:min(90vw,380px)}input{display:block;width:100%;box-sizing:border-box;padding:.7rem;margin:.5rem 0 1rem;border:1px solid #d7c8bd;border-radius:8px}button{background:#c43d09;color:white;border:0;border-radius:9px;padding:.8rem 1.3rem;cursor:pointer}p{color:#665b55}.request{display:inline-block;padding:.75rem 1rem;border:1px solid #c43d09;border-radius:9px;color:#a3330a;text-decoration:none;font-weight:600}.small{font-size:.85rem}</style></head>
 <body><main><h1>Hireationship</h1><p>Private hackathon preview. Sign in with an invited account.</p>
 {% if form.errors %}<p role="alert">Incorrect username or password.</p>{% endif %}
 <form method="post">{% csrf_token %}<label>Username<input name="username" autocomplete="username" required autofocus></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form>
+<hr style="border:0;border-top:1px solid #eaded5;margin:1.5rem 0">
+<h2 style="font-size:1.1rem">New to Hireationship?</h2>
+<p>Access is invite-only while we're in our hackathon preview.</p>
+{% if invite_request_url %}
+<a class="request" href="{{ invite_request_url }}">Request an invitation →</a>
+<p class="small">Opens your email app. We'll review your request and send you a private sign-up link if approved.</p>
+{% else %}
+<p class="small">Ask the project team or hackathon organisers for a private registration link.</p>
+{% endif %}
+<p class="small">Already received an invite? Open the registration link in your invitation.</p>
 </main></body></html>
