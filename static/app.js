@@ -23,6 +23,8 @@ const store = {
 };
 let aiMode = 'free';
 let personalApiKey = '';
+let fullAdvertReadsAvailable = true;
+let fullAdvertReadNotice = '';
 function connectionHeaders() {
   const headers = {'X-AI-Mode': aiMode};
   if (aiMode === 'personal') headers['X-Anthropic-Key'] = personalApiKey;
@@ -275,6 +277,7 @@ async function searchLiveJobs(page = 1) {
     }
     const data = await api('/api/live-jobs', {profile: searchProfile, page});
     if (profile !== searchProfile || searchKey !== liveSearchKey) throw new Error('Your profile or mode changed. Search again to refresh eligibility.');
+    if (typeof data.fullAdvertReadsAvailable === 'boolean') { fullAdvertReadsAvailable = data.fullAdvertReadsAvailable; fullAdvertReadNotice = data.fullAdvertReadNotice || ''; }
     const unique = jobs => [...new Map(jobs.map(job => [job.role.id,job])).values()];
     liveJobs = unique([...liveJobs, ...(data.jobs || []).filter(job => job.tier === 'eligible' && job.role?.id)]);
     const matchedIds = new Set(liveJobs.map(job => job.role.id));
@@ -320,7 +323,7 @@ function cardHTML(r) {
       <div class="liveFacts"><span>⌖ ${esc(ro.location || 'Location not supplied')}</span><span>${esc(salary)}</span>${ro.posted ? `<span>Posted ${esc(ro.posted)}</span>` : ''}</div>
       <div class="liveSection"><h3>${ro.eligibilityUnverified ? 'Eligibility needs review' : 'Why it fits your CV'}</h3>${ro.eligibilityUnverified ? `<p class="liveSummary">${ro.fullRead ? 'The full advert has been read, but some requirements need your review.' : ro.readFailed ? 'The website could not be read automatically. Open the original advert or paste its description to check it.' : 'Full-description checks run in batches. This preview does not contain enough requirements to confirm eligibility.'}</p>` : ''}<div class="chips">${r.matched.map(skill => `<span class="chip ok">✓ ${esc(skill)}</span>`).join('')}</div><ul class="why">${evidence.map(t => `<li class="ok">${esc(t)}</li>`).join('')}</ul></div>
       <div class="liveSection"><h3>The opportunity</h3><p class="liveSummary">${esc(summary.slice(0, 420))}${summary.length > 420 ? '…' : ''}</p></div>
-      <div class="liveFooter"><button class="btn primary" type="button" data-read-advert="${esc(ro.id)}">Read & check full advert</button>${ro.applyUrl?.startsWith('https://') ? `<a class="btn ghost" href="${esc(ro.applyUrl)}" target="_blank" rel="noopener noreferrer">Read full advert ↗</a>` : ''}<span>Swipe right to save · no uses spent</span></div>
+      <div class="liveFooter"><button class="btn primary" type="button" data-read-advert="${esc(ro.id)}">${fullAdvertReadsAvailable ? 'Read & check full advert' : 'Paste full advert to check'}</button>${ro.applyUrl?.startsWith('https://') ? `<a class="btn ghost" href="${esc(ro.applyUrl)}" target="_blank" rel="noopener noreferrer">Read full advert ↗</a>` : ''}<span>Swipe right to save · no uses spent</span></div>
       <p class="liveCaveat">${ro.eligibilityUnverified ? 'This is not a confirmed eligible match.' : ro.matchingMode === 'rules' ? 'Local rules check recognised criteria only.' : 'AI screening is an estimate.'} Confirm full requirements and closing date with the employer.</p>`;
   }
   if (ro.eligibilityUnverified) return `<span class="stamp l">PASS</span><span class="stamp r">SAVE</span><div><span class="pill">Live advert</span><span class="pill">Eligibility unverified</span></div><h2>${esc(ro.title)}</h2><p class="emp">${esc(ro.employer)} · ${esc(ro.location || '')}</p><p>${esc(ro.summary || 'No description supplied.')}</p><ul class="why"><li>Source: Adzuna job advertisement</li><li>Skills, eligibility and closing date must be checked on the original listing.</li></ul>${ro.applyUrl?.startsWith('https://') ? `<p><a href="${esc(ro.applyUrl)}" target="_blank" rel="noopener noreferrer">Read full job advert ↗</a></p>` : ''}<p class="deadline">Swipe right to save to Applications. You can draft an application after verifying the requirements.</p>`;
@@ -583,7 +586,8 @@ $('#packDownload').addEventListener('click', () => {
   $('#appCount').textContent = apps.length;
   await refreshGenerationQuota();
   try {
-    const { mode, serverKeyAvailable } = await api('/api/status');
+    const { mode, serverKeyAvailable, fullAdvertReadsAvailable: canRead, fullAdvertReadNotice: readNotice } = await api('/api/status');
+    fullAdvertReadsAvailable = canRead !== false; fullAdvertReadNotice = readNotice || '';
     $('#aiMode option[value="server"]').hidden = !serverKeyAvailable;
     $('#modeBadge').textContent = mode === 'claude' ? 'AI: Claude' : 'AI: Templates';
     $('#modeBadge').title = mode === 'claude' ? 'Application writing uses Claude; job source is selected separately.' : 'Application writing uses templates; job source is selected separately.';
@@ -661,7 +665,8 @@ $('#deck').addEventListener('click', event => {
   $('#jobDetailsText').value = '';
   $('#originalJobLink').href = result.role.applyUrl;
   $('#jobDetailsDialog').showModal();
-  checkFullAdvert();
+  if (fullAdvertReadsAvailable) checkFullAdvert();
+  else { $('#jobDetailsStatus').textContent = fullAdvertReadNotice; $('#jobDetailsReasons').innerHTML = ''; $('#checkJobDetails').disabled = false; }
 });
 $('#closeJobDetails').addEventListener('click', () => { detailsVersion++; $('#jobDetailsDialog').close(); });
 $('#jobDetailsDialog').addEventListener('cancel', () => { detailsVersion++; });
@@ -682,6 +687,7 @@ function applyFullCheck(role, data) {
   $('#reviewLiveCount').textContent = `(${reviewJobs.length})`;
 }
 async function autoCheckAdverts() {
+  if (!fullAdvertReadsAvailable) { $('#autoCheckStatus').textContent = fullAdvertReadNotice + ' No advert-reading attempts or pack generations have been spent.'; $('#checkMoreAdverts').hidden = true; return; }
   if (autoCheckRunning || !profile || !liveSearchKey) return;
   const batch = reviewJobs.filter(job => !autoAttempted.has(job.role.id)).slice(0,5);
   if (!batch.length) { $('#checkMoreAdverts').hidden = true; return; }

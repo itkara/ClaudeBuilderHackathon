@@ -12,6 +12,16 @@ from urllib.parse import urljoin, urlsplit
 MAX_BYTES = 2_000_000
 
 
+def advert_read_capability():
+    import os
+    configured=os.getenv('HIREATIONSHIP_FULL_ADVERT_FETCH_ENABLED','auto').lower()
+    proxies=[os.getenv(name,'') for name in ('https_proxy','HTTPS_PROXY','http_proxy','HTTP_PROXY')]
+    restricted=any(urlsplit(proxy).hostname == 'proxy.server' for proxy in proxies)
+    enabled=configured=='1' or configured=='auto' and not restricted
+    reason='' if enabled else 'This hosting environment cannot automatically read external job websites. Adzuna previews still work. Open the original advert, copy its description and paste it here for a free CV check.'
+    return {'fullAdvertReadsAvailable':enabled, 'fullAdvertReadNotice':reason}
+
+
 def public_target(url):
     parts = urlsplit(url)
     if parts.scheme != 'https' or not parts.hostname or parts.username or parts.password or parts.port not in (None, 443):

@@ -390,3 +390,35 @@ class AdvertCacheTests(TestCase):
             self.assertEqual(result.status_code,400)
         self.assertEqual(read.call_count,1)
         self.assertEqual(DailyAIUsage.objects.get().job_searches,1)
+
+
+class RestrictedHostingTests(TestCase):
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.client.force_login(get_user_model().objects.create_user(username='restricted-host'))
+        self.role={'id':'adzuna-restricted','title':'Graduate developer','applyUrl':'https://example.com/restricted-job'}
+        self.profile={'gradYear':2027,'skills':['python']}
+
+    @patch.dict('os.environ', {'http_proxy':'http://proxy.server:3128','HIREATIONSHIP_FULL_ADVERT_FETCH_ENABLED':'auto'})
+    @patch('matching.job_details.read_advert')
+    def test_restricted_host_does_not_spend_allowance_on_unavailable_reads(self, read):
+        response=self.client.post('/api/job-details',data=json.dumps({'role':self.role,'profile':self.profile}),content_type='application/json')
+        self.assertEqual(response.status_code,503)
+        self.assertEqual(response.json()['code'],'hosting_network_restricted')
+        self.assertFalse(DailyAIUsage.objects.exists())
+        read.assert_not_called()
+        self.assertFalse(self.client.get('/api/status').json()['fullAdvertReadsAvailable'])
+
+    @patch.dict('os.environ', {'HIREATIONSHIP_FULL_ADVERT_FETCH_ENABLED':'0'})
+    @patch('matching.job_details.read_advert')
+    def test_pasted_text_still_checked_when_host_cannot_fetch(self, read):
+        text='Python skills required. '+ 'Build software with our graduate development team and learn through projects. '*4
+        response=self.client.post('/api/job-details',data=json.dumps({'role':self.role,'profile':self.profile,'text':text}),content_type='application/json')
+        self.assertEqual(response.json()['outcome'],'matched')
+        self.assertFalse(DailyAIUsage.objects.exists())
+        read.assert_not_called()
+
+    @patch.dict('os.environ', {'HIREATIONSHIP_FULL_ADVERT_FETCH_ENABLED':'1','http_proxy':'http://proxy.server:3128'})
+    def test_explicit_host_configuration_is_respected(self):
+        self.assertTrue(self.client.get('/api/status').json()['fullAdvertReadsAvailable'])

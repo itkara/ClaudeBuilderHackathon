@@ -40,7 +40,9 @@ def endpoint(method='POST'):
   return wrapped
  return decorate
 @endpoint('GET')
-def status(data):return {'mode':'claude' if claude.has_key() else 'demo', 'serverKeyAvailable':bool(os.getenv('ANTHROPIC_API_KEY')) and os.getenv('HIREATIONSHIP_ALLOW_SHARED_CLAUDE','0')=='1'}
+def status(data):
+ from .job_details import advert_read_capability
+ return {**advert_read_capability(),'mode':'claude' if claude.has_key() else 'demo', 'serverKeyAvailable':bool(os.getenv('ANTHROPIC_API_KEY')) and os.getenv('HIREATIONSHIP_ALLOW_SHARED_CLAUDE','0')=='1'}
 @endpoint()
 def profile(data):
  cv=data.get('cvText') or ''
@@ -260,7 +262,8 @@ def live_jobs(request):
                 matches.append(evaluated)
             else:
                 unmet_count += 1
-        result=JsonResponse({'jobs':matcher.rank(matches, 'fit'), 'hiddenCount':len(jobs)-len(matches),
+        from .job_details import advert_read_capability
+        result=JsonResponse({**advert_read_capability(),'jobs':matcher.rank(matches, 'fit'), 'hiddenCount':len(jobs)-len(matches),
             'reviewJobs':review_jobs, 'fetchedCount':len(raw_jobs), 'totalAvailable':counts[0] if len(plans)==1 else None, 'queryCount':len(plans),
             'unmetCount':unmet_count, 'unclearCount':len(jobs)-len(matches)-unmet_count,
             'skippedCount':len(unique_jobs)-len(jobs), 'page':page, 'pageSize':page_size,
@@ -330,6 +333,10 @@ def job_details(request):
             if details and details.get('unavailable'):
                 raise ValueError('Cached unavailable advert')
             if details is None:
+                from .job_details import advert_read_capability
+                capability=advert_read_capability()
+                if not capability['fullAdvertReadsAvailable']:
+                    return JsonResponse({'error':capability['fullAdvertReadNotice'],'code':'hosting_network_restricted'},status=503)
                 limit=max(0,int(os.getenv('HIREATIONSHIP_DAILY_JOB_SEARCH_LIMIT','30')))
                 if not reserve_live_search(request.user,limit):
                     return JsonResponse({'error':'Daily advert-reading/search allowance reached. You can still paste the description.'},status=429)
