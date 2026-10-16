@@ -107,7 +107,7 @@
   <!-- TRACKER -->
   <section id="view-tracker" class="view" hidden>
     <h1>Your applications</h1>
-    <p id="generationQuota" class="hint" role="status" aria-live="polite">Checking free generations remaining…</p>
+    <p id="generationQuota" class="hint" role="status" aria-live="polite">Free plan · {{ generation_remaining }} of {{ generation_limit }} application generations remaining today{% if generation_remaining == 1 %} — last one!{% elif generation_remaining == 0 %} — resets tomorrow{% endif %}</p>
     <p class="lede small">Sorted by closing date. Every pack keeps the exact CV and cover letter version we drafted for that role.</p>
     <div id="trackerList"></div>
     <details class="card jd" style="margin-top:1rem"><summary>Passed jobs <span id="passedCount">0</span></summary><p class="hint">Roles you swiped left on, saved to your account. You can restore them to the swipe deck.</p><div id="passedList"></div></details>
@@ -131,6 +131,6 @@
   <div class="row"><button id="packCopy" class="btn">Copy</button><button id="packDownload" class="btn ghost">Download whole pack (.md)</button></div>
 </dialog>
 <div id="toast" class="toast" role="status"></div>
-<script src="{% static 'app.js' %}"></script>
+<script src="{% static 'app.js' %}?v=quota-fix-1"></script>
 </body>
 </html>
