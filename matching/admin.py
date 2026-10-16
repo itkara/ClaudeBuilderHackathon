@@ -1,7 +1,7 @@
 import secrets
 from datetime import timedelta
 
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
@@ -73,7 +73,7 @@ class InvitationAdmin(admin.ModelAdmin):
                     f'I would really appreciate your feedback!\n\nBest wishes,\nIpek\n'
                     f'Because you should have hire standards. 💘')
             email_draft_url = 'mailto:' + recipient + '?' + urlencode({
-                'subject': 'Your invitation to Hireationship 💘', 'body': body})
+                'subject': 'Your invitation to Hireationship 💘', 'body': body}, quote_via=quote)
         elif request.method != 'GET':
             return HttpResponseNotAllowed(['GET', 'POST'])
         context = {
