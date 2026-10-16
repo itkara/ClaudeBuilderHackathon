@@ -20,7 +20,9 @@ def index(request):
     limit = max(0, int(os.getenv('HIREATIONSHIP_DAILY_GENERATION_LIMIT', '4')))
     usage = DailyAIUsage.objects.filter(user=request.user, day=django_timezone.localdate()).first()
     used = usage.generations if usage else 0
+    from .job_details import advert_read_capability
     response = render(request, 'index.html', {
+        **advert_read_capability(),
         'generation_limit': limit,
         'generation_remaining': max(0, limit - used),
     })
