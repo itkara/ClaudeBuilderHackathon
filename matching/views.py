@@ -15,7 +15,16 @@ from .models import UserWorkspace, DailyAIUsage
 from django.utils import timezone as django_timezone
 log=logging.getLogger(__name__)
 @ensure_csrf_cookie
-def index(request):return render(request,'index.html')
+def index(request):
+    limit = max(0, int(os.getenv('HIREATIONSHIP_DAILY_GENERATION_LIMIT', '3')))
+    usage = DailyAIUsage.objects.filter(user=request.user, day=django_timezone.localdate()).first()
+    used = usage.generations if usage else 0
+    response = render(request, 'index.html', {
+        'generation_limit': limit,
+        'generation_remaining': max(0, limit - used),
+    })
+    response['Cache-Control'] = 'no-store'
+    return response
 def endpoint(method='POST'):
  def decorate(fn):
   def wrapped(request):
