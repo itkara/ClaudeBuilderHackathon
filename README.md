@@ -4,7 +4,7 @@
 
 Hireationship is a swipe-based graduate job discovery and application assistant. Instead of making students sift through hundreds of vacancies, it starts with their CV, checks their eligibility, explains the fit, and helps draft tailored applications for the roles they like.
 
-Built for the **Better Student Life** Claude hackathon.
+Built for the **Better Student Life** Claude hackathon 16/10/26.
 
 **Public website:** [Visit Hireationship](https://itkara.pythonanywhere.com/) — anyone can open the site and its sign-in page; registration is open; sign-in protects each account’s private workspace.
 
