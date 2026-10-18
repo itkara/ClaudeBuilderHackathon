@@ -166,3 +166,15 @@ JUDGES_ACCESS.md        Judge onboarding and email templates (PR #11)
 ### Vercel hostname configuration
 
 Django adds the exact deployment, branch and production hostnames from `VERCEL_URL`, `VERCEL_BRANCH_URL` and `VERCEL_PROJECT_PRODUCTION_URL` to its host and CSRF-origin lists. Enable system environment variables in Vercel and redeploy after updating the code. `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS` can provide additional explicit domains. Other Vercel tenants are not trusted. This host configuration does not migrate the existing SQLite database or provide persistent database storage on Vercel.
+
+
+## Skills gained
+
+- **Python and Django development:** built experience with request handling, data models, migrations, authentication and account-specific application state in a working web application.
+- **Frontend integration:** connected JavaScript, HTML and CSS interfaces to backend endpoints for CV intake, job discovery, document editing and application tracking.
+- **API integration and resilient workflows:** integrated Adzuna vacancy search and optional Claude-assisted features, with local rules, templates and paste-based alternatives when credentials or hosting capabilities are unavailable.
+- **Document processing:** worked with PDF and Word CV text extraction using pypdf and python-docx, and generated formatted PDF exports with ReportLab.
+- **Linux command line and deployment:** used a PythonAnywhere shell workflow involving virtual environments, dependency installation, Git updates, Django migrations, system checks and static-file collection.
+- **Data privacy and configuration:** developed understanding of per-account access, environment-based configuration, secret handling and the distinction between private workspace data and shared cached advert text.
+- **Analytical product design:** translated graduate-job requirements into explicit matching criteria, eligibility checks and explanations, while recognising uncertainty in incomplete adverts and generated text.
+- **Iterative development:** refined a hackathon prototype through GitHub changes, deployment constraints and practical user flows, balancing feature scope with reliability and clear limitations.
