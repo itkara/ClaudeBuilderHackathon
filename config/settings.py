@@ -17,6 +17,10 @@ STATICFILES_DIRS=[BASE_DIR/'static']
 STATIC_ROOT=BASE_DIR/'staticfiles'
 DEFAULT_AUTO_FIELD='django.db.models.BigAutoField'
 SECURE_CONTENT_TYPE_NOSNIFF=True
+# PythonAnywhere terminates TLS at its reverse proxy. Honour its HTTPS header
+# so Django's CSRF origin/referer checks see the correct public scheme.
+SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS=['https://itkara.pythonanywhere.com']
 
 DATABASES = {
     'default': {
